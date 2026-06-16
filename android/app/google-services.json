@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "229150698335",
+    "project_id": "mr-helper-app",
+    "storage_bucket": "mr-helper-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229150698335:android:4acfdea11dcbd1651ce4ea",
+        "android_client_info": {
+          "package_name": "com.example.mr_helper_security_analyzer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-8lihczGeP4ni7RjLvX3Kbg3AmqqT_r4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229150698335:android:de3c1bac741b54d11ce4ea",
+        "android_client_info": {
+          "package_name": "com.example.mrhelperapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-8lihczGeP4ni7RjLvX3Kbg3AmqqT_r4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
