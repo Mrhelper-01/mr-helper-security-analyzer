@@ -9,6 +9,7 @@ library;
 
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:mr_helper_security_analyzer/models/security_finding.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 
 enum AppLang { en, ckb }
@@ -174,6 +175,8 @@ class AppStrings {
   String get scoreLabel => _t('Score', 'نمرە');
   String get riskLabel => _t('Risk', 'مەترسی');
   String get headersLabel => _t('Headers', 'هێدەرەکان');
+  String get present => _t('Present', 'هەیە');
+  String get missing => _t('Missing', 'نییە');
 
   // --- History --------------------------------------------------------------
   String get scanHistory => _t('SCAN HISTORY', 'مێژووی سکان');
@@ -260,8 +263,199 @@ class AppStrings {
       'پاراستنی وێب، سکانێک لە کاتدا');
   String get initializing => _t('INITIALIZING...', 'دەستپێدەکات...');
 
+  // --- Findings (localized by code) -----------------------------------------
+  String severityLabel(FindingSeverity s) {
+    switch (s) {
+      case FindingSeverity.critical:
+        return _t('Critical', 'مەترسیدار');
+      case FindingSeverity.high:
+        return _t('High', 'بەرز');
+      case FindingSeverity.medium:
+        return _t('Medium', 'مامناوەند');
+      case FindingSeverity.low:
+        return _t('Low', 'نزم');
+      case FindingSeverity.info:
+        return _t('Info', 'زانیاری');
+    }
+  }
+
+  String findingTitle(SecurityFinding f) {
+    switch (f.code) {
+      case FindingCode.noHttps:
+        return _t('No HTTPS encryption', 'نهێنیکردنی HTTPS نییە');
+      case FindingCode.missingHsts:
+        return _t('Missing Strict-Transport-Security (HSTS)',
+            'هێدەری HSTS نییە');
+      case FindingCode.missingCsp:
+        return _t('Missing Content-Security-Policy (CSP)', 'هێدەری CSP نییە');
+      case FindingCode.weakCsp:
+        return _t('Weak Content-Security-Policy', 'CSP ـی لاواز');
+      case FindingCode.missingXFrame:
+        return _t('Missing X-Frame-Options', 'هێدەری X-Frame-Options نییە');
+      case FindingCode.missingXContent:
+        return _t('Missing X-Content-Type-Options',
+            'هێدەری X-Content-Type-Options نییە');
+      case FindingCode.missingReferrer:
+        return _t('Missing Referrer-Policy', 'هێدەری Referrer-Policy نییە');
+      case FindingCode.missingPermissions:
+        return _t('Missing Permissions-Policy',
+            'هێدەری Permissions-Policy نییە');
+      case FindingCode.missingCoop:
+        return _t('Missing Cross-Origin-Opener-Policy (COOP)',
+            'هێدەری COOP نییە');
+      case FindingCode.missingCorp:
+        return _t('Missing Cross-Origin-Resource-Policy (CORP)',
+            'هێدەری CORP نییە');
+      case FindingCode.serverDisclosed:
+        return _t('Server software disclosed', 'زانیاری سێرڤەر ئاشکراکراوە');
+      case FindingCode.cookieNoSecure:
+        return _t('Cookie missing Secure flag', 'کووکی ئاڵای Secure ـی نییە');
+      case FindingCode.cookieNoHttpOnly:
+        return _t('Cookie missing HttpOnly flag',
+            'کووکی ئاڵای HttpOnly ـی نییە');
+      case FindingCode.cookieSameSiteNone:
+        return _t('Cookie SameSite=None', 'کووکی SameSite=None');
+      case FindingCode.certInvalid:
+        return _t('TLS certificate problem', 'کێشەی سێرتیفیکەیتی TLS');
+      case FindingCode.certExpiringSoon:
+        return _t('TLS certificate expiring soon',
+            'سێرتیفیکەیتی TLS بەمزووانە بەسەردەچێت');
+      case FindingCode.other:
+        return f.title;
+    }
+  }
+
+  String findingDescription(SecurityFinding f) {
+    switch (f.code) {
+      case FindingCode.noHttps:
+        return _t(
+            'The site is served over plain HTTP. All traffic can be read or modified by anyone on the network.',
+            'سایتەکە بەسەر HTTP ـی ساکار خزمەت دەکات. هەموو ترافیکەکە دەتوانرێت لەلایەن هەرکەسێکی سەر تۆڕەکەوە بخوێنرێتەوە یان بگۆڕدرێت.');
+      case FindingCode.missingHsts:
+        return _t(
+            'Without HSTS, browsers may connect over insecure HTTP and are vulnerable to SSL-stripping attacks.',
+            'بەبێ HSTS، بڕاوزەرەکان لەوانەیە بەسەر HTTP ـی ناپارێزراو پەیوەندی بکەن و بەرامبەر هێرشی SSL-stripping لاوازن.');
+      case FindingCode.missingCsp:
+        return _t(
+            'CSP is the strongest defense against cross-site scripting (XSS) and data-injection attacks.',
+            'CSP بەهێزترین بەرگرییە بەرامبەر هێرشی XSS و تێزڕاندنی داتا.');
+      case FindingCode.weakCsp:
+        return _t(
+            "The CSP allows 'unsafe-inline' or 'unsafe-eval', which largely defeats its protection against XSS.",
+            'CSP ـەکە ڕێگە بە unsafe-inline یان unsafe-eval دەدات، کە زۆربەی پاراستنەکەی بەرامبەر XSS بێ کاریگەر دەکات.');
+      case FindingCode.missingXFrame:
+        return _t(
+            'The site can be embedded in an iframe, enabling clickjacking.',
+            'سایتەکە دەتوانرێت لە ناو iframe دابنرێت، کە ڕێگە بە هێرشی clickjacking دەدات.');
+      case FindingCode.missingXContent:
+        return _t('Browsers may MIME-sniff responses, which can lead to XSS.',
+            'بڕاوزەرەکان لەوانەیە MIME-sniff بکەن، کە دەبێتە هۆی XSS.');
+      case FindingCode.missingReferrer:
+        return _t(
+            'Full URLs may leak to third-party sites via the Referer header.',
+            'ناونیشانی تەواو لەوانەیە بۆ سایتی لایەنی سێیەم بدڕێت لەڕێگەی هێدەری Referer.');
+      case FindingCode.missingPermissions:
+        return _t(
+            'Powerful browser features (camera, geolocation, etc.) are not restricted.',
+            'تایبەتمەندییە بەهێزەکانی بڕاوزەر (کامێرا، شوێن، هتد) سنووردار نەکراون.');
+      case FindingCode.missingCoop:
+        return _t(
+            'COOP isolates your window from cross-origin popups, mitigating side-channel attacks.',
+            'COOP پەنجەرەکەت لە popup ـە بیانییەکان جیادەکاتەوە و هێرشی side-channel کەم دەکاتەوە.');
+      case FindingCode.missingCorp:
+        return _t('CORP prevents other sites from embedding your resources.',
+            'CORP ڕێگری لە سایتی تر دەکات کە سەرچاوەکانت دابنێن.');
+      case FindingCode.serverDisclosed:
+        return _t(
+            'The server reveals its software/version (${f.param}), helping attackers find matching exploits.',
+            'سێرڤەرەکە نەرمەکاڵا/وەشانەکەی ئاشکرا دەکات (${f.param})، کە یارمەتی هێرشبەران دەدات.');
+      case FindingCode.cookieNoSecure:
+        return _t('One or more cookies can be sent over unencrypted HTTP.',
+            'یەک یان زیاتر کووکی دەتوانرێت بەسەر HTTP ـی نهێنینەکراو بنێردرێت.');
+      case FindingCode.cookieNoHttpOnly:
+        return _t(
+            'Cookies are readable by JavaScript, exposing them to XSS theft.',
+            'کووکییەکان لەلایەن JavaScript دەخوێنرێنەوە، کە بەرامبەر دزینی XSS لاوازن.');
+      case FindingCode.cookieSameSiteNone:
+        return _t('Cookies are sent on cross-site requests, enabling CSRF.',
+            'کووکییەکان لە داواکاری نێوان سایتەکان دەنێردرێن، کە ڕێگە بە CSRF دەدات.');
+      case FindingCode.certInvalid:
+        return _t('The TLS certificate could not be validated.',
+            'سێرتیفیکەیتی TLS نەتوانرا پشتڕاست بکرێتەوە.');
+      case FindingCode.certExpiringSoon:
+        return _t('The certificate expires in ${f.param} day(s).',
+            'سێرتیفیکەیتەکە لە ${f.param} ڕۆژدا بەسەردەچێت.');
+      case FindingCode.other:
+        return f.description;
+    }
+  }
+
+  String? findingRecommendation(SecurityFinding f) {
+    switch (f.code) {
+      case FindingCode.noHttps:
+        return _t(
+            'Install a valid SSL/TLS certificate and redirect all HTTP to HTTPS.',
+            'سێرتیفیکەیتی SSL/TLS ـی دروست دابمەزرێنە و هەموو HTTP بۆ HTTPS ئاراستە بکە.');
+      case FindingCode.missingHsts:
+        return _t(
+            'Add: Strict-Transport-Security: max-age=63072000; includeSubDomains; preload',
+            'زیادی بکە: Strict-Transport-Security: max-age=63072000; includeSubDomains; preload');
+      case FindingCode.missingCsp:
+        return _t("Define a restrictive policy, e.g. default-src 'self'.",
+            "سیاسەتێکی توند دیاری بکە، بۆ نموونە default-src 'self'.");
+      case FindingCode.weakCsp:
+        return _t(
+            "Remove 'unsafe-inline'/'unsafe-eval' and use nonces or hashes.",
+            'unsafe-inline/unsafe-eval لاببە و nonce یان hash بەکاربهێنە.');
+      case FindingCode.missingXFrame:
+        return _t('Add: X-Frame-Options: DENY (or SAMEORIGIN).',
+            'زیادی بکە: X-Frame-Options: DENY (یان SAMEORIGIN).');
+      case FindingCode.missingXContent:
+        return _t('Add: X-Content-Type-Options: nosniff.',
+            'زیادی بکە: X-Content-Type-Options: nosniff.');
+      case FindingCode.missingReferrer:
+        return _t('Add: Referrer-Policy: strict-origin-when-cross-origin.',
+            'زیادی بکە: Referrer-Policy: strict-origin-when-cross-origin.');
+      case FindingCode.missingPermissions:
+        return _t('Add a Permissions-Policy disabling features you do not use.',
+            'Permissions-Policy زیاد بکە کە ئەو تایبەتمەندییانە ناچالاک بکات کە بەکارناهێنیت.');
+      case FindingCode.missingCoop:
+        return _t('Consider: Cross-Origin-Opener-Policy: same-origin.',
+            'بیری لێبکەرەوە: Cross-Origin-Opener-Policy: same-origin.');
+      case FindingCode.missingCorp:
+        return _t('Consider: Cross-Origin-Resource-Policy: same-origin.',
+            'بیری لێبکەرەوە: Cross-Origin-Resource-Policy: same-origin.');
+      case FindingCode.serverDisclosed:
+        return _t('Remove or obfuscate the Server and X-Powered-By headers.',
+            'هێدەرەکانی Server و X-Powered-By لاببە یان بیانشارەوە.');
+      case FindingCode.cookieNoSecure:
+        return _t('Add the Secure attribute to every cookie.',
+            'تایبەتمەندی Secure بۆ هەموو کووکییەک زیاد بکە.');
+      case FindingCode.cookieNoHttpOnly:
+        return _t('Add the HttpOnly attribute to session cookies.',
+            'تایبەتمەندی HttpOnly بۆ کووکی session زیاد بکە.');
+      case FindingCode.cookieSameSiteNone:
+        return _t('Set SameSite=Lax or Strict.',
+            'SameSite=Lax یان Strict دابنێ.');
+      case FindingCode.certInvalid:
+        return _t('Install a valid, trusted certificate.',
+            'سێرتیفیکەیتێکی دروست و متمانەپێکراو دابمەزرێنە.');
+      case FindingCode.certExpiringSoon:
+        return _t('Renew the certificate before it expires.',
+            'سێرتیفیکەیتەکە نوێ بکەرەوە پێش بەسەرچوونی.');
+      case FindingCode.other:
+        return f.recommendation;
+    }
+  }
+
   // --- Settings -------------------------------------------------------------
   String get settings => _t('SETTINGS', 'ڕێکخستنەکان');
+  // PDF language dialog
+  String get reportLanguageTitle =>
+      _t('Report language', 'زمانی ڕاپۆرت');
+  String get reportLanguagePrompt => _t(
+      'Which language should the PDF report be generated in?',
+      'ڕاپۆرتی PDF بە کام زمان دروست بکرێت؟');
   String get appearance => _t('APPEARANCE', 'ڕووکار');
   String get darkMode => _t('Dark Mode', 'دۆخی تاریک');
   String get toggleDarkTheme =>

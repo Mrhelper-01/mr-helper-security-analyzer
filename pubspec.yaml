@@ -47,4 +47,10 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/UniQAIDAR.ttf
+
+  fonts:
+    - family: UniQAIDAR
+      fonts:
+        - asset: assets/fonts/UniQAIDAR.ttf
 

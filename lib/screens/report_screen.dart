@@ -1,14 +1,19 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/widgets/printable_report.dart';
 import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/models/scan_result.dart';
 import 'package:mr_helper_security_analyzer/models/security_finding.dart';
 import 'package:mr_helper_security_analyzer/services/report_pdf_service.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
+import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 import 'package:mr_helper_security_analyzer/widgets/score_indicator.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
 import 'package:mr_helper_security_analyzer/widgets/header_check_tile.dart';
@@ -86,7 +91,30 @@ class ReportScreen extends StatelessWidget {
 
   Future<void> _sharePdf(BuildContext context, ScanResult scan) async {
     final messenger = ScaffoldMessenger.of(context);
-    final strings = context.read<LocaleProvider>().strings;
+    final overlay = Overlay.of(context);
+    final current = context.read<LocaleProvider>().strings;
+
+    // Ask which language the PDF should be generated in.
+    final lang = await showDialog<AppLang>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(current.reportLanguageTitle),
+        content: Text(current.reportLanguagePrompt),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, AppLang.ckb),
+            child: Text(current.kurdish),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, AppLang.en),
+            child: Text(current.english),
+          ),
+        ],
+      ),
+    );
+    if (lang == null) return; // dismissed
+
+    final strings = AppStrings(lang);
     messenger.showSnackBar(
       SnackBar(
         content: Text(strings.generatingPdf),
@@ -94,14 +122,60 @@ class ReportScreen extends StatelessWidget {
       ),
     );
     try {
-      await ReportPdfService().sharePdf(scan);
+      if (lang == AppLang.ckb) {
+        // Kurdish: render with Flutter (correct shaping) → image → PDF.
+        final shot = await _captureReportImage(overlay, scan, strings);
+        if (shot == null) {
+          throw Exception('capture failed');
+        }
+        await ReportPdfService()
+            .shareImagePdf(scan, shot.bytes, shot.width, shot.height);
+      } else {
+        await ReportPdfService().sharePdf(scan, strings);
+      }
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Could not generate PDF: $e'),
+          content: Text('${current.couldNotPdf}: $e'),
           backgroundColor: AppColors.error,
         ),
       );
+    }
+  }
+
+  /// Render [PrintableReport] off-screen via an overlay and capture it to PNG.
+  Future<_Shot?> _captureReportImage(
+      OverlayState overlay, ScanResult scan, AppStrings strings) async {
+    final key = GlobalKey();
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: -20000,
+        top: 0,
+        child: Material(
+          type: MaterialType.transparency,
+          child: RepaintBoundary(
+            key: key,
+            child: PrintableReport(scan: scan, s: strings),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    try {
+      // Let the off-screen widget lay out and paint.
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      await WidgetsBinding.instance.endOfFrame;
+      final boundary =
+          key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2.6);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      final w = image.width;
+      final h = image.height;
+      image.dispose();
+      if (data == null) return null;
+      return _Shot(data.buffer.asUint8List(), w, h);
+    } finally {
+      entry.remove();
     }
   }
 
@@ -138,16 +212,8 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            s.targetInformation,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 12),
+          SectionLabel(text: s.targetInformation, icon: Icons.gps_fixed_rounded),
+          const SizedBox(height: 14),
           _buildInfoRow(s.urlLabel, scan.url, Icons.link_rounded),
           const SizedBox(height: 8),
           _buildInfoRow(s.domainLabel, scan.displayUrl, Icons.language_rounded),
@@ -202,37 +268,29 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                s.securityHeadersTitle,
+          SectionLabel(
+            text: s.securityHeadersTitle,
+            icon: Icons.http_rounded,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                '${scan.presentHeaderCount}/${scan.presentHeaderCount + scan.missingHeaderCount}',
                 style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
-                  color: AppColors.textMuted,
-                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryLight,
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '${scan.presentHeaderCount}/${scan.presentHeaderCount + scan.missingHeaderCount}',
-                  style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _buildHeaderStatus(
               'Content-Security-Policy',
               scan.headers['content-security-policy'] ?? false,
@@ -281,15 +339,7 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            s.cookieAnalysis,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
+          SectionLabel(text: s.cookieAnalysis, icon: Icons.cookie_rounded),
           const SizedBox(height: 12),
           _buildCookieStatus(
             s.cookiesPresent,
@@ -424,16 +474,8 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            s.summary,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 12),
+          SectionLabel(text: s.summary, icon: Icons.dashboard_rounded),
+          const SizedBox(height: 14),
           Row(
             children: [
               _buildSummaryItem(
@@ -504,16 +546,9 @@ class ReportScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                s.serverCertificate,
-                style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
-                  fontSize: 11,
-                  color: AppColors.textMuted,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 12),
+              SectionLabel(
+                  text: s.serverCertificate, icon: Icons.dns_rounded),
+              const SizedBox(height: 14),
               if (scan.serverInfo['server'] != null)
                 _buildInfoRow(s.serverLabel, '${scan.serverInfo['server']}',
                     Icons.dns_rounded),
@@ -581,40 +616,29 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.lightbulb_outline_rounded,
-                  size: 18, color: AppColors.warning),
-              const SizedBox(width: 8),
-              Text(
-                s.findings,
+          SectionLabel(
+            text: s.findings,
+            icon: Icons.lightbulb_outline_rounded,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                s.issueCount(findings.length),
                 style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
-                  color: AppColors.textMuted,
-                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryLight,
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  s.issueCount(findings.length),
-                  style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           if (findings.isEmpty)
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -633,16 +657,25 @@ class ReportScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ...findings.map(_buildFindingTile),
+          ...findings.map((f) => _buildFindingTile(f, s)),
         ],
       ),
     );
   }
 
-  Widget _buildFindingTile(SecurityFinding finding) {
+  Widget _buildFindingTile(SecurityFinding finding, AppStrings s) {
     final color = _severityColor(finding.severity);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+    final recommendation = s.findingRecommendation(finding);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+        border: Border(
+          left: BorderSide(color: color, width: 3),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -659,7 +692,7 @@ class ReportScreen extends StatelessWidget {
                   border: Border.all(color: color.withValues(alpha: 0.5)),
                 ),
                 child: Text(
-                  finding.severity.label.toUpperCase(),
+                  s.severityLabel(finding.severity).toUpperCase(),
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 9,
@@ -672,7 +705,7 @@ class ReportScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  finding.title,
+                  s.findingTitle(finding),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -687,7 +720,7 @@ class ReportScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 2),
             child: Text(
-              finding.description,
+              s.findingDescription(finding),
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
@@ -695,7 +728,7 @@ class ReportScreen extends StatelessWidget {
               ),
             ),
           ),
-          if (finding.recommendation != null) ...[
+          if (recommendation != null) ...[
             const SizedBox(height: 4),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -704,7 +737,7 @@ class ReportScreen extends StatelessWidget {
                     size: 16, color: AppColors.success),
                 Expanded(
                   child: Text(
-                    finding.recommendation!,
+                    recommendation,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.success,
@@ -719,4 +752,12 @@ class ReportScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Captured report image bytes plus pixel dimensions.
+class _Shot {
+  final Uint8List bytes;
+  final int width;
+  final int height;
+  const _Shot(this.bytes, this.width, this.height);
 }

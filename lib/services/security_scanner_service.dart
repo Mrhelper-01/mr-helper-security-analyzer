@@ -211,6 +211,7 @@ class SecurityScannerService {
             'The site is served over plain HTTP. All traffic can be read or '
             'modified by anyone on the network.',
         severity: FindingSeverity.critical,
+        code: FindingCode.noHttps,
         recommendation:
             'Install a valid SSL/TLS certificate and redirect all HTTP to HTTPS.',
       ));
@@ -223,6 +224,7 @@ class SecurityScannerService {
             'Without HSTS, browsers may connect over insecure HTTP and are '
             'vulnerable to SSL-stripping attacks.',
         severity: FindingSeverity.high,
+        code: FindingCode.missingHsts,
         recommendation:
             'Add: Strict-Transport-Security: max-age=63072000; includeSubDomains; preload',
       ));
@@ -235,6 +237,7 @@ class SecurityScannerService {
             'CSP is the strongest defense against cross-site scripting (XSS) '
             'and data-injection attacks.',
         severity: FindingSeverity.high,
+        code: FindingCode.missingCsp,
         recommendation:
             "Define a restrictive policy, e.g. default-src 'self'.",
       ));
@@ -245,6 +248,7 @@ class SecurityScannerService {
             "The CSP allows 'unsafe-inline' or 'unsafe-eval', which largely "
             'defeats its protection against XSS.',
         severity: FindingSeverity.medium,
+        code: FindingCode.weakCsp,
         recommendation:
             "Remove 'unsafe-inline'/'unsafe-eval' and use nonces or hashes.",
       ));
@@ -256,6 +260,7 @@ class SecurityScannerService {
         description:
             'The site can be embedded in an iframe, enabling clickjacking.',
         severity: FindingSeverity.medium,
+        code: FindingCode.missingXFrame,
         recommendation: 'Add: X-Frame-Options: DENY (or SAMEORIGIN).',
       ));
     }
@@ -266,6 +271,7 @@ class SecurityScannerService {
         description:
             'Browsers may MIME-sniff responses, which can lead to XSS.',
         severity: FindingSeverity.medium,
+        code: FindingCode.missingXContent,
         recommendation: 'Add: X-Content-Type-Options: nosniff.',
       ));
     }
@@ -276,6 +282,7 @@ class SecurityScannerService {
         description:
             'Full URLs may leak to third-party sites via the Referer header.',
         severity: FindingSeverity.low,
+        code: FindingCode.missingReferrer,
         recommendation: 'Add: Referrer-Policy: strict-origin-when-cross-origin.',
       ));
     }
@@ -287,6 +294,7 @@ class SecurityScannerService {
             'Powerful browser features (camera, geolocation, etc.) are not '
             'restricted.',
         severity: FindingSeverity.low,
+        code: FindingCode.missingPermissions,
         recommendation:
             'Add a Permissions-Policy disabling features you do not use.',
       ));
@@ -300,6 +308,7 @@ class SecurityScannerService {
             'COOP isolates your window from cross-origin popups, mitigating '
             'side-channel attacks.',
         severity: FindingSeverity.info,
+        code: FindingCode.missingCoop,
         recommendation: 'Consider: Cross-Origin-Opener-Policy: same-origin.',
       ));
     }
@@ -309,6 +318,7 @@ class SecurityScannerService {
         description:
             'CORP prevents other sites from embedding your resources.',
         severity: FindingSeverity.info,
+        code: FindingCode.missingCorp,
         recommendation: 'Consider: Cross-Origin-Resource-Policy: same-origin.',
       ));
     }
@@ -324,6 +334,8 @@ class SecurityScannerService {
             'The server reveals its software/version ($banner), helping '
             'attackers find matching exploits.',
         severity: FindingSeverity.low,
+        code: FindingCode.serverDisclosed,
+        param: banner,
         recommendation:
             'Remove or obfuscate the Server and X-Powered-By headers.',
       ));
@@ -337,6 +349,7 @@ class SecurityScannerService {
           description:
               'One or more cookies can be sent over unencrypted HTTP.',
           severity: FindingSeverity.medium,
+          code: FindingCode.cookieNoSecure,
           recommendation: 'Add the Secure attribute to every cookie.',
         ));
       }
@@ -346,6 +359,7 @@ class SecurityScannerService {
           description:
               'Cookies are readable by JavaScript, exposing them to XSS theft.',
           severity: FindingSeverity.medium,
+          code: FindingCode.cookieNoHttpOnly,
           recommendation: 'Add the HttpOnly attribute to session cookies.',
         ));
       }
@@ -355,6 +369,7 @@ class SecurityScannerService {
           description:
               'Cookies are sent on cross-site requests, enabling CSRF.',
           severity: FindingSeverity.low,
+          code: FindingCode.cookieSameSiteNone,
           recommendation: 'Set SameSite=Lax or Strict.',
         ));
       }
@@ -368,6 +383,8 @@ class SecurityScannerService {
           description: certificate['error'] as String? ??
               'The TLS certificate could not be validated.',
           severity: FindingSeverity.critical,
+          code: FindingCode.certInvalid,
+          param: certificate['error'],
           recommendation: 'Install a valid, trusted certificate.',
         ));
       } else {
@@ -378,6 +395,8 @@ class SecurityScannerService {
             description:
                 'The certificate expires in $days day(s).',
             severity: FindingSeverity.high,
+            code: FindingCode.certExpiringSoon,
+            param: days,
             recommendation: 'Renew the certificate before it expires.',
           ));
         }

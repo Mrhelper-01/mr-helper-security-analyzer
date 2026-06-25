@@ -10,6 +10,7 @@ import 'package:mr_helper_security_analyzer/widgets/stats_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 import 'package:mr_helper_security_analyzer/widgets/gradient_button.dart';
+import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Home dashboard with stats, quick actions, and recent scans
@@ -241,15 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  AppStrings.of(context).overview,
-                  style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 2,
-                  ),
-                ),
+                Expanded(child: SectionLabel(text: AppStrings.of(context).overview)),
                 if (provider.isLoadingStats)
                   SizedBox(
                     width: 14,
@@ -307,15 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  AppStrings.of(context).recentScans,
-                  style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 2,
-                  ),
-                ),
+                Expanded(
+                    child: SectionLabel(
+                        text: AppStrings.of(context).recentScans)),
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, AppRoutes.history),
                   child: Text(
@@ -467,15 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppStrings.of(context).quickActions,
-          style: const TextStyle(
-            fontFamily: 'JetBrainsMono',
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            letterSpacing: 2,
-          ),
-        ),
+        SectionLabel(text: AppStrings.of(context).quickActions),
         const SizedBox(height: 12),
         Row(
           children: [

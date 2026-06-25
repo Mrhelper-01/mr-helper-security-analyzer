@@ -32,15 +32,30 @@ class HeaderCheckTile extends StatelessWidget {
             children: [
               // Status icon
               Container(
-                width: 32,
-                height: 32,
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  color: (isPresent ? AppColors.success : AppColors.error)
-                      .withValues(alpha: 0.1),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      (isPresent ? AppColors.success : AppColors.error)
+                          .withValues(alpha: 0.22),
+                      (isPresent ? AppColors.success : AppColors.error)
+                          .withValues(alpha: 0.06),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+                  border: Border.all(
+                    color: (isPresent ? AppColors.success : AppColors.error)
+                        .withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
                 ),
                 child: Icon(
-                  isPresent ? Icons.check_circle : Icons.cancel,
+                  isPresent
+                      ? Icons.check_rounded
+                      : Icons.priority_high_rounded,
                   color: isPresent ? AppColors.success : AppColors.error,
                   size: 18,
                 ),

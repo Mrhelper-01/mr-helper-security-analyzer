@@ -7,6 +7,7 @@ import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 import 'package:mr_helper_security_analyzer/widgets/gradient_button.dart';
+import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 import 'package:mr_helper_security_analyzer/utils/validators.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -198,23 +199,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            s.whatWeCheck,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 12),
+          SectionLabel(text: s.whatWeCheck),
+          const SizedBox(height: 16),
           _buildCheckItem(
-              s.httpsAvailability, Icons.lock_outline, AppColors.success),
+              s.httpsAvailability, Icons.lock_rounded, AppColors.success),
           _buildCheckItem(
-              s.securityHeaders, Icons.security_outlined, AppColors.neonBlue),
+              s.securityHeaders, Icons.security_rounded, AppColors.primary),
           _buildCheckItem(
-              s.cookieSecurity, Icons.cookie_outlined, AppColors.warning),
-          _buildCheckItem(s.riskClassification, Icons.analytics_outlined,
+              s.cookieSecurity, Icons.cookie_rounded, AppColors.warning),
+          _buildCheckItem(s.riskClassification, Icons.analytics_rounded,
               AppColors.neonPurple),
         ],
       ),
@@ -223,18 +216,39 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   Widget _buildCheckItem(String label, IconData icon, Color color) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withValues(alpha: 0.22),
+                  color.withValues(alpha: 0.06),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+              border: Border.all(color: color.withValues(alpha: 0.25)),
+            ),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
+          Icon(Icons.check_circle_outline_rounded,
+              size: 16, color: color.withValues(alpha: 0.6)),
         ],
       ),
     );
@@ -245,12 +259,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
       padding: const EdgeInsets.all(AppConstants.paddingXl),
       child: Column(
         children: [
-          const SizedBox(
-            width: 80,
-            height: 80,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          SizedBox(
+            width: 90,
+            height: 90,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  width: 90,
+                  height: 90,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                ),
+                const Icon(Icons.radar_rounded,
+                    size: 36, color: Colors.white),
+              ],
             ),
           ),
           const SizedBox(height: 24),

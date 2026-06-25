@@ -40,6 +40,32 @@ enum FindingSeverity {
   }
 }
 
+/// Stable identifier for each kind of finding, used to look up localized text.
+enum FindingCode {
+  noHttps,
+  missingHsts,
+  missingCsp,
+  weakCsp,
+  missingXFrame,
+  missingXContent,
+  missingReferrer,
+  missingPermissions,
+  missingCoop,
+  missingCorp,
+  serverDisclosed,
+  cookieNoSecure,
+  cookieNoHttpOnly,
+  cookieSameSiteNone,
+  certInvalid,
+  certExpiringSoon,
+  other;
+
+  static FindingCode fromId(String? id) => FindingCode.values.firstWhere(
+        (c) => c.name == id,
+        orElse: () => FindingCode.other,
+      );
+}
+
 /// A single issue or note produced by the scanner.
 class SecurityFinding {
   final String title;
@@ -49,18 +75,29 @@ class SecurityFinding {
   /// Optional remediation advice (what the site owner should do).
   final String? recommendation;
 
+  /// Stable code used to fetch localized text at display time.
+  final FindingCode code;
+
+  /// Optional dynamic value embedded in the message (e.g. server banner,
+  /// days-remaining), so localized text can re-inject it.
+  final dynamic param;
+
   const SecurityFinding({
     required this.title,
     required this.description,
     required this.severity,
     this.recommendation,
+    this.code = FindingCode.other,
+    this.param,
   });
 
   Map<String, dynamic> toMap() => {
         'title': title,
         'description': description,
         'severity': severity.id,
+        'code': code.name,
         if (recommendation != null) 'recommendation': recommendation,
+        if (param != null) 'param': param,
       };
 
   factory SecurityFinding.fromMap(Map<String, dynamic> map) => SecurityFinding(
@@ -68,5 +105,7 @@ class SecurityFinding {
         description: map['description'] as String? ?? '',
         severity: FindingSeverity.fromId(map['severity'] as String?),
         recommendation: map['recommendation'] as String?,
+        code: FindingCode.fromId(map['code'] as String?),
+        param: map['param'],
       );
 }

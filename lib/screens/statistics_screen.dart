@@ -6,6 +6,7 @@ import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
+import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Statistics dashboard with charts and analytics
@@ -158,15 +159,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppStrings.of(context).riskDistribution,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
+          SectionLabel(
+              text: AppStrings.of(context).riskDistribution,
+              icon: Icons.donut_large_rounded),
           const SizedBox(height: 20),
           SizedBox(
             height: 200,
@@ -286,16 +281,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppStrings.of(context).mostScanned,
-            style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 11,
-              color: AppColors.textMuted,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 12),
+          SectionLabel(
+              text: AppStrings.of(context).mostScanned,
+              icon: Icons.leaderboard_rounded),
+          const SizedBox(height: 14),
           if (websites.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16.0),
