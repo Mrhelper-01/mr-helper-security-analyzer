@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/stats_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
+import 'package:mr_helper_security_analyzer/widgets/gradient_button.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Home dashboard with stats, quick actions, and recent scans
@@ -37,10 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
+        hero: true,
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -51,10 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 // Header
                 _buildHeader(),
-                const SizedBox(height: 24),
-                // Scan button
+                const SizedBox(height: 28),
+                // Hero scan CTA
                 _buildScanButton(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
                 // Stats section
                 _buildStatsSection(),
                 const SizedBox(height: 24),
@@ -96,9 +97,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Web Security Analyzer',
-              style: TextStyle(
+            Text(
+              AppStrings.of(context).appTagline,
+              style: const TextStyle(
                 fontFamily: 'JetBrainsMono',
                 fontSize: 11,
                 color: AppColors.neonBlue,
@@ -151,52 +152,80 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildScanButton() {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.scanner),
       padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Column(
         children: [
+          // Glowing shield emblem
           Container(
-            width: 64,
-            height: 64,
+            width: 84,
+            height: 84,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.35),
+                  AppColors.primary.withValues(alpha: 0.0),
+                ],
+              ),
               border: Border.all(
-                color: AppColors.neonBlue.withValues(alpha: 0.3),
-                width: 2,
+                color: AppColors.primaryLight.withValues(alpha: 0.35),
+                width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neonBlue.withValues(alpha: 0.15),
-                  blurRadius: 20,
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                  blurRadius: 30,
                   spreadRadius: 2,
                 ),
               ],
             ),
             child: const Icon(
-              Icons.security_rounded,
-              size: 32,
-              color: AppColors.neonBlue,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'START SECURITY SCAN',
-            style: TextStyle(
-              fontFamily: 'JetBrainsMono',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              Icons.shield_moon_rounded,
+              size: 40,
               color: Colors.white,
-              letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+          // Two-tone hero heading
+          RichText(
+            textAlign: TextAlign.center,
+            text: const TextSpan(
+              style: TextStyle(
+                fontFamily: 'JetBrainsMono',
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+                height: 1.25,
+              ),
+              children: [
+                TextSpan(
+                  text: 'SECURED BY\n',
+                  style: TextStyle(color: Colors.white),
+                ),
+                TextSpan(
+                  text: 'INNOVATION',
+                  style: TextStyle(color: AppColors.primaryLight),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
-            'Enter a URL to analyze its security posture',
+            s.enterUrlToAnalyze,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              height: 1.5,
+              color: AppColors.textSecondary.withValues(alpha: 0.8),
             ),
+          ),
+          const SizedBox(height: 20),
+          GradientButton(
+            label: s.startSecurityScan,
+            icon: Icons.security_rounded,
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.scanner),
           ),
         ],
       ),
@@ -212,9 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'OVERVIEW',
-                  style: TextStyle(
+                Text(
+                  AppStrings.of(context).overview,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -239,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Expanded(
                   child: StatsCard(
-                    label: 'Total Scans',
+                    label: AppStrings.of(context).totalScans,
                     value: provider.isLoadingStats
                         ? '...'
                         : '${provider.totalScans}',
@@ -252,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: StatsCard(
-                    label: 'Avg Score',
+                    label: AppStrings.of(context).avgScore,
                     value: provider.isLoadingStats
                         ? '...'
                         // ignore: unnecessary_string_interpolations
@@ -278,9 +307,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'RECENT SCANS',
-                  style: TextStyle(
+                Text(
+                  AppStrings.of(context).recentScans,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -289,9 +318,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pushNamed(context, AppRoutes.history),
-                  child: const Text(
-                    'VIEW ALL',
-                    style: TextStyle(
+                  child: Text(
+                    AppStrings.of(context).viewAll,
+                    style: const TextStyle(
                       fontFamily: 'JetBrainsMono',
                       fontSize: 11,
                       color: AppColors.neonBlue,
@@ -400,9 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
             color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'No scans yet',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).noScansYet,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
@@ -410,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Start your first security scan!',
+            AppStrings.of(context).startFirstScan,
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textMuted.withValues(alpha: 0.7),
@@ -438,9 +467,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'QUICK ACTIONS',
-          style: TextStyle(
+        Text(
+          AppStrings.of(context).quickActions,
+          style: const TextStyle(
             fontFamily: 'JetBrainsMono',
             fontSize: 13,
             color: AppColors.textSecondary,
@@ -453,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildActionCard(
                 icon: Icons.history_rounded,
-                label: 'History',
+                label: AppStrings.of(context).history,
                 color: AppColors.neonPurple,
                 onTap: () => Navigator.pushNamed(context, AppRoutes.history),
               ),
@@ -462,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildActionCard(
                 icon: Icons.analytics_rounded,
-                label: 'Statistics',
+                label: AppStrings.of(context).statistics,
                 color: AppColors.neonGreen,
                 onTap: () => Navigator.pushNamed(context, AppRoutes.statistics),
               ),
@@ -471,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildActionCard(
                 icon: Icons.info_outline_rounded,
-                label: 'About',
+                label: AppStrings.of(context).about,
                 color: AppColors.warning,
                 onTap: () => Navigator.pushNamed(context, AppRoutes.about),
               ),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
-import 'package:mr_helper_security_analyzer/core/theme.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// About screen with developer info and app description
@@ -13,16 +14,13 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ABOUT'),
+        title: Text(AppStrings.of(context).aboutTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -37,19 +35,19 @@ class AboutScreen extends StatelessWidget {
                 _buildAppName(),
                 const SizedBox(height: 32),
                 // Developer Card
-                _buildDeveloperCard(),
+                _buildDeveloperCard(context),
                 const SizedBox(height: 20),
                 // Description Card
-                _buildDescriptionCard(),
+                _buildDescriptionCard(context),
                 const SizedBox(height: 20),
                 // Features Card
-                _buildFeaturesCard(),
+                _buildFeaturesCard(context),
                 const SizedBox(height: 20),
                 // Technical Details
-                _buildTechDetailsCard(),
+                _buildTechDetailsCard(context),
                 const SizedBox(height: 32),
                 // Footer
-                _buildFooter(),
+                _buildFooter(context),
                 const SizedBox(height: 24),
               ],
             ),
@@ -138,7 +136,8 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeveloperCard() {
+  Widget _buildDeveloperCard(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Row(
@@ -166,11 +165,11 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   AppConstants.developerName,
                   style: TextStyle(
                     fontFamily: 'JetBrainsMono',
@@ -180,20 +179,20 @@ class AboutScreen extends StatelessWidget {
                     letterSpacing: 1,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Flutter Developer',
-                  style: TextStyle(
+                  s.flutterDeveloper,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 12,
                     color: AppColors.neonBlue,
                     letterSpacing: 1,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Cybersecurity Enthusiast',
-                  style: TextStyle(
+                  s.cyberEnthusiast,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 11,
                     color: AppColors.textMuted,
@@ -208,20 +207,21 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionCard() {
-    return const GlassmorphismCard(
-      padding: EdgeInsets.all(AppConstants.paddingLg),
+  Widget _buildDescriptionCard(BuildContext context) {
+    final s = AppStrings.of(context);
+    return GlassmorphismCard(
+      padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.description_outlined,
+              const Icon(Icons.description_outlined,
                   size: 18, color: AppColors.neonBlue),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
-                'DESCRIPTION',
-                style: TextStyle(
+                s.descriptionTitle,
+                style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
                   color: AppColors.textMuted,
@@ -230,10 +230,10 @@ class AboutScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
-            AppConstants.appDescription,
-            style: TextStyle(
+            s.appDescriptionText,
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.6,
@@ -244,20 +244,21 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeaturesCard() {
+  Widget _buildFeaturesCard(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.star_outline_rounded,
+              const Icon(Icons.star_outline_rounded,
                   size: 18, color: AppColors.warning),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
-                'KEY FEATURES',
-                style: TextStyle(
+                s.keyFeatures,
+                style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
                   color: AppColors.textMuted,
@@ -269,32 +270,32 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _buildFeatureItem(
             Icons.security_rounded,
-            'Security Header Analysis',
-            'Check CSP, HSTS, X-Frame-Options and more',
+            s.featureHeadersTitle,
+            s.featureHeadersDesc,
           ),
           const SizedBox(height: 12),
           _buildFeatureItem(
             Icons.cookie_outlined,
-            'Cookie Security Audit',
-            'Analyze Secure, HttpOnly, and SameSite flags',
+            s.featureCookieTitle,
+            s.featureCookieDesc,
           ),
           const SizedBox(height: 12),
           _buildFeatureItem(
             Icons.score_rounded,
-            'Security Scoring Engine',
-            '0-100 score with letter grades A through F',
+            s.featureScoreTitle,
+            s.featureScoreDesc,
           ),
           const SizedBox(height: 12),
           _buildFeatureItem(
             Icons.analytics_rounded,
-            'Risk Classification',
-            'Low, Medium, High, and Critical risk levels',
+            s.featureRiskTitle,
+            s.featureRiskDesc,
           ),
           const SizedBox(height: 12),
           _buildFeatureItem(
             Icons.cloud_sync_rounded,
-            'Cloud History',
-            'All scans stored securely in Firebase Firestore',
+            s.featureCloudTitle,
+            s.featureCloudDesc,
           ),
         ],
       ),
@@ -340,19 +341,21 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTechDetailsCard() {
+  Widget _buildTechDetailsCard(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.code_rounded, size: 18, color: AppColors.neonPurple),
-              SizedBox(width: 8),
+              const Icon(Icons.code_rounded,
+                  size: 18, color: AppColors.neonPurple),
+              const SizedBox(width: 8),
               Text(
-                'TECHNICAL DETAILS',
-                style: TextStyle(
+                s.technicalDetails,
+                style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
                   color: AppColors.textMuted,
@@ -362,12 +365,12 @@ class AboutScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildDetailRow('Framework', 'Flutter (Dart)'),
-          _buildDetailRow('Backend', 'Firebase Firestore'),
-          _buildDetailRow('State Management', 'Provider'),
-          _buildDetailRow('Architecture', 'Clean Architecture'),
-          _buildDetailRow('Charts', 'fl_chart'),
-          _buildDetailRow('HTTP Client', 'http package'),
+          _buildDetailRow(s.frameworkLabel, 'Flutter (Dart)'),
+          _buildDetailRow(s.backendLabel, 'Firebase Firestore'),
+          _buildDetailRow(s.stateMgmtLabel, 'Provider'),
+          _buildDetailRow(s.architectureLabel, s.cleanArchitecture),
+          _buildDetailRow(s.chartsLabel, 'fl_chart'),
+          _buildDetailRow(s.httpClientLabel, 'http package'),
         ],
       ),
     );
@@ -400,11 +403,12 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
+    final s = AppStrings.of(context);
     return Column(
       children: [
         Text(
-          'Made with ❤️ by ${AppConstants.developerName}',
+          s.madeWith(AppConstants.developerName),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
@@ -414,7 +418,7 @@ class AboutScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '© ${DateTime.now().year} All Rights Reserved',
+          '© ${DateTime.now().year} ${s.allRightsReserved}',
           style: TextStyle(
             fontSize: 10,
             color: AppColors.textMuted.withValues(alpha: 0.5),

@@ -256,7 +256,7 @@ class AppTheme {
         tertiary: AppColors.neonPurple,
         surface: AppColors.backgroundCard,
         error: AppColors.error,
-        onPrimary: Colors.black,
+        onPrimary: Colors.white,
         onSecondary: Colors.black,
         onSurface: AppColors.textPrimary,
       ),
@@ -353,14 +353,14 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.black,
+          foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(
             horizontal: AppConstants.paddingLg,
             vertical: AppConstants.paddingMd,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+            borderRadius: BorderRadius.circular(AppConstants.radiusLg),
           ),
           textStyle: const TextStyle(
             fontFamily: 'JetBrainsMono',
@@ -374,14 +374,14 @@ class AppTheme {
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
+          foregroundColor: AppColors.primaryLight,
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.6)),
           padding: const EdgeInsets.symmetric(
             horizontal: AppConstants.paddingLg,
             vertical: AppConstants.paddingMd,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+            borderRadius: BorderRadius.circular(AppConstants.radiusLg),
           ),
         ),
       ),
@@ -470,15 +470,16 @@ class AppTheme {
     return isDarkMode ? darkTheme : lightTheme;
   }
 
-  /// Linear gradient for backgrounds
+  /// Linear gradient for backgrounds — deep purple wash like the Cerebra hero
   static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
     colors: [
-      AppColors.backgroundDark,
-      Color(0xFF0D1528),
-      AppColors.backgroundDark,
+      Color(0xFF0A0814),
+      Color(0xFF15102B),
+      Color(0xFF0A0814),
     ],
+    stops: [0.0, 0.5, 1.0],
   );
 
   /// Light background gradient
@@ -502,13 +503,23 @@ class AppTheme {
     ],
   );
 
-  /// Neon glow gradient
+  /// Neon glow gradient — violet to lavender
   static const LinearGradient neonGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      AppColors.neonBlue,
-      AppColors.neonCyan,
+      AppColors.primary,
+      AppColors.primaryLight,
+    ],
+  );
+
+  /// Signature Cerebra-style violet button gradient
+  static const LinearGradient buttonGradient = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [
+      Color(0xFF8B6DFF),
+      Color(0xFF6D4FD9),
     ],
   );
 

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
+import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/models/scan_result.dart';
+import 'package:mr_helper_security_analyzer/models/security_finding.dart';
+import 'package:mr_helper_security_analyzer/services/report_pdf_service.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 import 'package:mr_helper_security_analyzer/widgets/score_indicator.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
 import 'package:mr_helper_security_analyzer/widgets/header_check_tile.dart';
@@ -25,18 +31,23 @@ class ReportScreen extends StatelessWidget {
       );
     }
 
+    final s = AppStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SECURITY REPORT'),
+        title: Text(s.securityReport),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_rounded),
+            tooltip: s.shareReport,
+            onPressed: () => _sharePdf(context, scan),
+          ),
+        ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -46,22 +57,24 @@ class ReportScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 8),
                 // Score & Grade Section
-                _buildScoreSection(scan),
+                _buildScoreSection(scan, s),
                 const SizedBox(height: 20),
                 // URL & Risk Info
-                _buildUrlInfoSection(scan),
+                _buildUrlInfoSection(scan, s),
                 const SizedBox(height: 20),
                 // Security Headers
-                _buildHeadersSection(scan),
+                _buildHeadersSection(scan, s),
                 const SizedBox(height: 20),
                 // Cookie Analysis
-                _buildCookieSection(scan),
+                _buildCookieSection(scan, s),
                 const SizedBox(height: 20),
+                // Server / certificate info
+                _buildServerSection(scan, s),
                 // Summary
-                _buildSummarySection(scan),
+                _buildSummarySection(scan, s),
                 const SizedBox(height: 20),
-                // Recommendations
-                _buildRecommendations(scan),
+                // Findings (severity-ranked)
+                _buildFindingsSection(scan, s),
                 const SizedBox(height: 24),
               ],
             ),
@@ -71,14 +84,35 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreSection(ScanResult scan) {
+  Future<void> _sharePdf(BuildContext context, ScanResult scan) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final strings = context.read<LocaleProvider>().strings;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(strings.generatingPdf),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+    try {
+      await ReportPdfService().sharePdf(scan);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Could not generate PDF: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Widget _buildScoreSection(ScanResult scan, AppStrings s) {
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingLg),
       child: Column(
         children: [
-          const Text(
-            'SECURITY SCORE',
-            style: TextStyle(
+          Text(
+            s.securityScore,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 12,
               color: AppColors.textMuted,
@@ -98,15 +132,15 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUrlInfoSection(ScanResult scan) {
+  Widget _buildUrlInfoSection(ScanResult scan, AppStrings s) {
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'TARGET INFORMATION',
-            style: TextStyle(
+          Text(
+            s.targetInformation,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -114,17 +148,17 @@ class ReportScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildInfoRow('URL', scan.url, Icons.link_rounded),
+          _buildInfoRow(s.urlLabel, scan.url, Icons.link_rounded),
           const SizedBox(height: 8),
-          _buildInfoRow('Domain', scan.displayUrl, Icons.language_rounded),
+          _buildInfoRow(s.domainLabel, scan.displayUrl, Icons.language_rounded),
           const SizedBox(height: 8),
-          _buildInfoRow('HTTPS', scan.https ? 'Enabled' : 'Disabled',
+          _buildInfoRow(s.httpsLabel, scan.https ? s.enabled : s.disabled,
               scan.https ? Icons.lock_rounded : Icons.lock_open_rounded,
               valueColor: scan.https ? AppColors.success : AppColors.error),
           if (scan.timestamp != null) ...[
             const SizedBox(height: 8),
             _buildInfoRow(
-                'Scanned', scan.formattedDate, Icons.access_time_rounded),
+                s.scannedLabel, scan.formattedDate, Icons.access_time_rounded),
           ],
         ],
       ),
@@ -162,7 +196,7 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeadersSection(ScanResult scan) {
+  Widget _buildHeadersSection(ScanResult scan, AppStrings s) {
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
@@ -170,9 +204,9 @@ class ReportScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'SECURITY HEADERS',
-                style: TextStyle(
+              Text(
+                s.securityHeadersTitle,
+                style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
                   color: AppColors.textMuted,
@@ -202,27 +236,21 @@ class ReportScreen extends StatelessWidget {
           _buildHeaderStatus(
               'Content-Security-Policy',
               scan.headers['content-security-policy'] ?? false,
-              'Controls resources the browser is allowed to load'),
+              s.cspDesc),
           _buildHeaderStatus(
               'Strict-Transport-Security',
               scan.headers['strict-transport-security'] ?? false,
-              'Forces HTTPS connections'),
-          _buildHeaderStatus(
-              'X-Frame-Options',
-              scan.headers['x-frame-options'] ?? false,
-              'Prevents clickjacking attacks'),
+              s.hstsDesc),
+          _buildHeaderStatus('X-Frame-Options',
+              scan.headers['x-frame-options'] ?? false, s.xFrameDesc),
           _buildHeaderStatus(
               'X-Content-Type-Options',
               scan.headers['x-content-type-options'] ?? false,
-              'Prevents MIME type sniffing'),
-          _buildHeaderStatus(
-              'Referrer-Policy',
-              scan.headers['referrer-policy'] ?? false,
-              'Controls referrer information'),
-          _buildHeaderStatus(
-              'Permissions-Policy',
-              scan.headers['permissions-policy'] ?? false,
-              'Controls browser features'),
+              s.xContentDesc),
+          _buildHeaderStatus('Referrer-Policy',
+              scan.headers['referrer-policy'] ?? false, s.referrerDesc),
+          _buildHeaderStatus('Permissions-Policy',
+              scan.headers['permissions-policy'] ?? false, s.permissionsDesc),
         ],
       ),
     );
@@ -240,7 +268,7 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCookieSection(ScanResult scan) {
+  Widget _buildCookieSection(ScanResult scan, AppStrings s) {
     final cookies = scan.cookies;
     final hasCookies = cookies['present'] == true;
     final secure = cookies['secure'] == true;
@@ -253,9 +281,9 @@ class ReportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'COOKIE ANALYSIS',
-            style: TextStyle(
+          Text(
+            s.cookieAnalysis,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -264,26 +292,24 @@ class ReportScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildCookieStatus(
-            'Cookies Present',
+            s.cookiesPresent,
             hasCookies,
-            hasCookies ? '$count cookie(s) found' : 'No cookies detected',
+            hasCookies ? s.cookiesFound(count as int) : s.noCookiesDetected,
           ),
           const Divider(height: 1),
           _buildCookieStatus(
-            'Secure Flag',
+            s.secureFlag,
             secure,
-            secure ? 'Cookies sent over HTTPS only' : 'Missing Secure flag',
+            secure ? s.cookiesHttpsOnly : s.missingSecureFlag,
           ),
           const Divider(height: 1),
           _buildCookieStatus(
-            'HttpOnly Flag',
+            s.httpOnlyFlag,
             httpOnly,
-            httpOnly
-                ? 'Cookies not accessible via JavaScript'
-                : 'Missing HttpOnly flag',
+            httpOnly ? s.cookiesNoJs : s.missingHttpOnly,
           ),
           const Divider(height: 1),
-          _buildSameSiteStatus(sameSite),
+          _buildSameSiteStatus(sameSite, s),
         ],
       ),
     );
@@ -340,7 +366,7 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSameSiteStatus(String sameSite) {
+  Widget _buildSameSiteStatus(String sameSite, AppStrings s) {
     final isGood = sameSite == 'Lax' || sameSite == 'Strict';
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -368,9 +394,9 @@ class ReportScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'SameSite Policy',
-                  style: TextStyle(
+                Text(
+                  s.sameSitePolicy,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -392,15 +418,15 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummarySection(ScanResult scan) {
+  Widget _buildSummarySection(ScanResult scan, AppStrings s) {
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'SUMMARY',
-            style: TextStyle(
+          Text(
+            s.summary,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -411,22 +437,22 @@ class ReportScreen extends StatelessWidget {
           Row(
             children: [
               _buildSummaryItem(
-                'Grade',
+                s.gradeLabel,
                 scan.grade,
                 AppTheme.scoreToColor(scan.score),
               ),
               _buildSummaryItem(
-                'Score',
+                s.scoreLabel,
                 '${scan.score}/100',
                 AppTheme.scoreToColor(scan.score),
               ),
               _buildSummaryItem(
-                'Risk',
-                scan.risk,
+                s.riskLabel,
+                s.risk(scan.risk),
                 AppTheme.riskToColor(scan.risk),
               ),
               _buildSummaryItem(
-                'Headers',
+                s.headersLabel,
                 '${scan.presentHeaderCount}/${scan.presentHeaderCount + scan.missingHeaderCount}',
                 scan.hasMissingHeaders ? AppColors.warning : AppColors.success,
               ),
@@ -463,125 +489,232 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendations(ScanResult scan) {
-    final recommendations = <String>[];
+  /// Server software & TLS certificate card. Hidden when nothing to show.
+  Widget _buildServerSection(ScanResult scan, AppStrings s) {
+    final cert = scan.certificate;
+    final hasCert = cert['checked'] == true;
+    final hasServer = scan.serverInfo.isNotEmpty;
+    if (!hasCert && !hasServer) return const SizedBox.shrink();
 
-    if (!scan.https) {
-      recommendations.add(
-          'Enable HTTPS using a valid SSL/TLS certificate to encrypt all data in transit.');
-    }
-    if (!scan.hsts) {
-      recommendations.add(
-          'Implement Strict-Transport-Security header to enforce HTTPS connections.');
-    }
-    if (!scan.csp) {
-      recommendations.add(
-          'Add Content-Security-Policy header to prevent XSS and data injection attacks.');
-    }
-    if (!(scan.headers['x-frame-options'] ?? false)) {
-      recommendations.add(
-          'Set X-Frame-Options header to DENY or SAMEORIGIN to prevent clickjacking.');
-    }
-    if (!(scan.headers['x-content-type-options'] ?? false)) {
-      recommendations.add(
-          'Enable X-Content-Type-Options: nosniff to prevent MIME type sniffing.');
-    }
-    if (!(scan.headers['referrer-policy'] ?? false)) {
-      recommendations.add(
-          'Configure Referrer-Policy header to control information leakage via referrer headers.');
-    }
-    if (!(scan.headers['permissions-policy'] ?? false)) {
-      recommendations.add(
-          'Implement Permissions-Policy header to restrict browser feature access.');
-    }
-
-    final cookies = scan.cookies;
-    if (cookies['present'] == true) {
-      if (cookies['secure'] != true) {
-        recommendations.add(
-            'Add the Secure flag to all cookies to ensure they are only sent over HTTPS.');
-      }
-      if (cookies['httpOnly'] != true) {
-        recommendations.add(
-            'Add the HttpOnly flag to cookies to prevent client-side script access.');
-      }
-      if (cookies['sameSite'] == 'None') {
-        recommendations.add(
-            'Set SameSite attribute (Lax or Strict) on cookies to prevent CSRF attacks.');
-      }
-    }
-
-    return GlassmorphismCard(
-      padding: const EdgeInsets.all(AppConstants.paddingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GlassmorphismCard(
+          padding: const EdgeInsets.all(AppConstants.paddingMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.lightbulb_outline_rounded,
-                  size: 18, color: AppColors.warning),
-              SizedBox(width: 8),
               Text(
-                'RECOMMENDATIONS',
-                style: TextStyle(
+                s.serverCertificate,
+                style: const TextStyle(
                   fontFamily: 'JetBrainsMono',
                   fontSize: 11,
                   color: AppColors.textMuted,
                   letterSpacing: 2,
                 ),
               ),
+              const SizedBox(height: 12),
+              if (scan.serverInfo['server'] != null)
+                _buildInfoRow(s.serverLabel, '${scan.serverInfo['server']}',
+                    Icons.dns_rounded),
+              if (scan.serverInfo['poweredBy'] != null) ...[
+                const SizedBox(height: 8),
+                _buildInfoRow(s.poweredByLabel,
+                    '${scan.serverInfo['poweredBy']}', Icons.memory_rounded),
+              ],
+              if (hasCert) ...[
+                if (scan.serverInfo.isNotEmpty) const SizedBox(height: 8),
+                _buildInfoRow(
+                  s.certificateLabel,
+                  cert['valid'] == true ? s.valid : s.invalid,
+                  cert['valid'] == true
+                      ? Icons.verified_user_rounded
+                      : Icons.gpp_bad_rounded,
+                  valueColor:
+                      cert['valid'] == true ? AppColors.success : AppColors.error,
+                ),
+                if (cert['issuer'] != null) ...[
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                      s.issuerLabel, '${cert['issuer']}', Icons.business_rounded),
+                ],
+                if (cert['daysRemaining'] != null) ...[
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    s.expiresInLabel,
+                    s.daysValue(cert['daysRemaining'] as int),
+                    Icons.event_rounded,
+                    valueColor: (cert['daysRemaining'] as int) <= 15
+                        ? AppColors.warning
+                        : Colors.white,
+                  ),
+                ],
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Color _severityColor(FindingSeverity s) {
+    switch (s) {
+      case FindingSeverity.critical:
+        return AppColors.riskCriticalColor;
+      case FindingSeverity.high:
+        return AppColors.riskHighColor;
+      case FindingSeverity.medium:
+        return AppColors.warning;
+      case FindingSeverity.low:
+        return AppColors.primary;
+      case FindingSeverity.info:
+        return AppColors.textMuted;
+    }
+  }
+
+  Widget _buildFindingsSection(ScanResult scan, AppStrings s) {
+    final findings = scan.sortedFindings;
+
+    return GlassmorphismCard(
+      padding: const EdgeInsets.all(AppConstants.paddingMd),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline_rounded,
+                  size: 18, color: AppColors.warning),
+              const SizedBox(width: 8),
+              Text(
+                s.findings,
+                style: const TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                  letterSpacing: 2,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  s.issueCount(findings.length),
+                  style: const TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          if (recommendations.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+          if (findings.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                  SizedBox(width: 8),
+                  const Icon(Icons.check_circle,
+                      color: AppColors.success, size: 18),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Excellent! Your website has strong security posture.',
-                      style: TextStyle(
-                        color: AppColors.success,
-                        fontSize: 13,
-                      ),
+                      s.noIssues,
+                      style: const TextStyle(
+                          color: AppColors.success, fontSize: 13),
                     ),
                   ),
                 ],
               ),
             ),
-          ...recommendations.map((rec) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.warning,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        rec,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
+          ...findings.map(_buildFindingTile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFindingTile(SecurityFinding finding) {
+    final color = _severityColor(finding.severity);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: color.withValues(alpha: 0.5)),
                 ),
-              )),
+                child: Text(
+                  finding.severity.label.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'JetBrainsMono',
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  finding.title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text(
+              finding.description,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+          if (finding.recommendation != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.arrow_right_rounded,
+                    size: 16, color: AppColors.success),
+                Expanded(
+                  child: Text(
+                    finding.recommendation!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.success,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

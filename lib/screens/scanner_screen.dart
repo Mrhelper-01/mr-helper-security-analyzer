@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
-import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
+import 'package:mr_helper_security_analyzer/widgets/gradient_button.dart';
 import 'package:mr_helper_security_analyzer/utils/validators.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -47,18 +49,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SECURITY SCANNER'),
+        title: Text(s.securityScanner),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
+        hero: true,
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -113,9 +114,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'ENTER TARGET URL',
-                  style: TextStyle(
+                Text(
+                  AppStrings.of(context).enterTargetUrl,
+                  style: const TextStyle(
                     fontFamily: 'JetBrainsMono',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -172,29 +173,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: Consumer<ScanProvider>(
-                builder: (context, provider, _) {
-                  return ElevatedButton.icon(
-                    onPressed: provider.isScanning ? null : _startScan,
-                    icon: provider.isScanning
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.black,
-                            ),
-                          )
-                        : const Icon(Icons.security_rounded),
-                    label: Text(
-                      provider.isScanning ? 'SCANNING...' : 'START SCAN',
-                    ),
-                  );
-                },
-              ),
+            Consumer<ScanProvider>(
+              builder: (context, provider, _) {
+                return GradientButton(
+                  loading: provider.isScanning,
+                  onPressed: provider.isScanning ? null : _startScan,
+                  icon: Icons.security_rounded,
+                  label: provider.isScanning
+                      ? AppStrings.of(context).scanning
+                      : AppStrings.of(context).startScan,
+                );
+              },
             ),
           ],
         ),
@@ -203,14 +192,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Widget _buildScanInfo() {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'WHAT WE CHECK',
-            style: TextStyle(
+          Text(
+            s.whatWeCheck,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -219,13 +209,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
           const SizedBox(height: 12),
           _buildCheckItem(
-              'HTTPS Availability', Icons.lock_outline, AppColors.success),
-          _buildCheckItem('Security Headers (CSP, HSTS, etc.)',
-              Icons.security_outlined, AppColors.neonBlue),
-          _buildCheckItem('Cookie Security (Secure, HttpOnly)',
-              Icons.cookie_outlined, AppColors.warning),
-          _buildCheckItem('Risk Classification & Scoring',
-              Icons.analytics_outlined, AppColors.neonPurple),
+              s.httpsAvailability, Icons.lock_outline, AppColors.success),
+          _buildCheckItem(
+              s.securityHeaders, Icons.security_outlined, AppColors.neonBlue),
+          _buildCheckItem(
+              s.cookieSecurity, Icons.cookie_outlined, AppColors.warning),
+          _buildCheckItem(s.riskClassification, Icons.analytics_outlined,
+              AppColors.neonPurple),
         ],
       ),
     );
@@ -264,9 +254,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'SCANNING IN PROGRESS',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).scanInProgress,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -276,18 +266,20 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Analyzing security headers and configuration...',
+            AppStrings.of(context).analyzingConfig,
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 16),
-          _buildScanStep('Checking HTTPS', Icons.lock_outline),
-          _buildScanStep('Analyzing Security Headers', Icons.security_outlined),
-          _buildScanStep('Inspecting Cookies', Icons.cookie_outlined),
+          _buildScanStep(AppStrings.of(context).checkingHttps, Icons.lock_outline),
           _buildScanStep(
-              'Calculating Security Score', Icons.calculate_outlined),
+              AppStrings.of(context).analyzingHeaders, Icons.security_outlined),
+          _buildScanStep(
+              AppStrings.of(context).inspectingCookies, Icons.cookie_outlined),
+          _buildScanStep(
+              AppStrings.of(context).calculatingScore, Icons.calculate_outlined),
         ],
       ),
     );
@@ -341,9 +333,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'SCAN FAILED',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).scanFailed,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -366,7 +358,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               context.read<ScanProvider>().clearError();
             },
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('TRY AGAIN'),
+            label: Text(AppStrings.of(context).tryAgain),
           ),
         ],
       ),
@@ -392,9 +384,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'READY TO SCAN',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).readyToScan,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -403,9 +395,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Enter a URL above and press Start Scan',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).enterUrlAbovePrompt,
+            style: const TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary,
             ),

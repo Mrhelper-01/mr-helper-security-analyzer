@@ -4,6 +4,8 @@ import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/providers/theme_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 
 /// MR HELPER - Web Application Security Analyzer
@@ -16,7 +18,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SETTINGS'),
+        title: Text(AppStrings.of(context).settings),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -35,22 +37,27 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 8),
                 // Appearance Section
-                _buildSectionHeader('APPEARANCE'),
+                _buildSectionHeader(AppStrings.of(context).appearance),
                 const SizedBox(height: 12),
                 _buildThemeToggle(),
                 const SizedBox(height: 24),
+                // Language Section
+                _buildSectionHeader('${AppStrings.of(context).language} / زمان'),
+                const SizedBox(height: 12),
+                _buildLanguageToggle(),
+                const SizedBox(height: 24),
                 // App Info Section
-                _buildSectionHeader('APPLICATION'),
+                _buildSectionHeader(AppStrings.of(context).application),
                 const SizedBox(height: 12),
                 _buildAppInfoSection(context),
                 const SizedBox(height: 24),
                 // Developer Section
-                _buildSectionHeader('DEVELOPER'),
+                _buildSectionHeader(AppStrings.of(context).developerSection),
                 const SizedBox(height: 12),
                 _buildDeveloperSection(context),
                 const SizedBox(height: 24),
                 // Danger Zone
-                _buildSectionHeader('DATA'),
+                _buildSectionHeader(AppStrings.of(context).dataSection),
                 const SizedBox(height: 12),
                 _buildDataSection(context),
                 const SizedBox(height: 32),
@@ -97,22 +104,22 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Dark Mode',
-                      style: TextStyle(
+                      AppStrings.of(context).darkMode,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Toggle dark theme',
-                      style: TextStyle(
+                      AppStrings.of(context).toggleDarkTheme,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textMuted,
                       ),
@@ -133,7 +140,81 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLanguageToggle() {
+    return Consumer<LocaleProvider>(
+      builder: (context, localeProvider, _) {
+        final s = localeProvider.strings;
+        return GlassmorphismCard(
+          padding: const EdgeInsets.all(AppConstants.paddingMd),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.neonBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+                ),
+                child: const Icon(
+                  Icons.translate_rounded,
+                  color: AppColors.neonBlue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  s.language,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              _langChip(context, localeProvider, AppLang.en, s.english),
+              const SizedBox(width: 8),
+              _langChip(context, localeProvider, AppLang.ckb, s.kurdish),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _langChip(
+    BuildContext context,
+    LocaleProvider provider,
+    AppLang lang,
+    String label,
+  ) {
+    final selected = provider.lang == lang;
+    return GestureDetector(
+      onTap: () => provider.setLanguage(lang),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.glassBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            color: selected ? AppColors.primary : AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAppInfoSection(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
@@ -141,8 +222,8 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.info_outline_rounded,
             iconColor: AppColors.neonBlue,
-            title: 'About',
-            subtitle: 'App information and version',
+            title: s.about,
+            subtitle: s.aboutSubtitle,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: AppColors.textMuted),
             onTap: () => Navigator.pushNamed(context, AppRoutes.about),
@@ -151,15 +232,15 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.code_rounded,
             iconColor: AppColors.neonPurple,
-            title: 'Version',
+            title: s.versionLabel,
             subtitle: AppConstants.appVersion,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
             icon: Icons.shield_outlined,
             iconColor: AppColors.success,
-            title: 'App Purpose',
-            subtitle: 'Web Security Analysis Tool',
+            title: s.appPurpose,
+            subtitle: s.appPurposeValue,
           ),
         ],
       ),
@@ -167,6 +248,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildDeveloperSection(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
@@ -174,21 +256,21 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.person_outline_rounded,
             iconColor: AppColors.primary,
-            title: 'Developer',
+            title: s.developerLabel,
             subtitle: AppConstants.developerName,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
             icon: Icons.work_outline_rounded,
             iconColor: AppColors.success,
-            title: 'Role',
-            subtitle: AppConstants.developerRole,
+            title: s.roleLabel,
+            subtitle: s.developerRoleValue,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
             icon: Icons.code_rounded,
             iconColor: AppColors.warning,
-            title: 'Tech Stack',
+            title: s.techStackLabel,
             subtitle: 'Flutter, Dart, Firebase',
           ),
         ],
@@ -197,6 +279,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildDataSection(BuildContext context) {
+    final s = AppStrings.of(context);
     return GlassmorphismCard(
       padding: const EdgeInsets.all(AppConstants.paddingMd),
       child: Column(
@@ -204,15 +287,15 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.cloud_sync_rounded,
             iconColor: AppColors.neonBlue,
-            title: 'Firebase Sync',
-            subtitle: 'Data stored in Firebase Firestore',
+            title: s.firebaseSync,
+            subtitle: s.firebaseSyncValue,
           ),
           const Divider(height: 1),
           _buildSettingsTile(
             icon: Icons.privacy_tip_outlined,
             iconColor: AppColors.textMuted,
-            title: 'Privacy',
-            subtitle: 'Only scanned URLs are stored',
+            title: s.privacyLabel,
+            subtitle: s.privacyValue,
           ),
         ],
       ),

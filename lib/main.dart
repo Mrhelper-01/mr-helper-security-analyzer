@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/theme_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 import 'package:mr_helper_security_analyzer/firebase_options.dart';
 
 void main() async {
@@ -39,6 +40,9 @@ void main() async {
         ChangeNotifierProvider<ScanProvider>(
           create: (_) => ScanProvider(),
         ),
+        ChangeNotifierProvider<LocaleProvider>(
+          create: (_) => LocaleProvider(),
+        ),
       ],
       child: const MrHelperApp(),
     ),
@@ -50,14 +54,19 @@ class MrHelperApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
+    return Consumer2<ThemeProvider, LocaleProvider>(
+      builder: (context, themeProvider, localeProvider, _) {
         return MaterialApp(
           title: 'MR HELPER - Web Security Analyzer',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.themeData, // ✅ گۆڕدرا بۆ themeData
           initialRoute: AppRoutes.splash,
           onGenerateRoute: AppRoutes.generateRoute,
+          // Flip the whole UI to RTL when Kurdish is selected.
+          builder: (context, child) => Directionality(
+            textDirection: localeProvider.textDirection,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

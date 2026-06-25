@@ -54,7 +54,10 @@ class AppConstants {
   static const String riskCritical = 'Critical Risk';
 
   // API Timeout
-  static const Duration requestTimeout = Duration(seconds: 15);
+  static const Duration requestTimeout = Duration(seconds: 30);
+
+  // TLS certificate inspection timeout (kept short so it never stalls a scan)
+  static const Duration certTimeout = Duration(seconds: 8);
 
   // Animation Durations
   static const Duration animationFast = Duration(milliseconds: 300);
@@ -87,50 +90,50 @@ class AppConstants {
 class AppColors {
   AppColors._();
 
-  // Primary Colors
-  static const Color primary = Color(0xFF00D4FF);
-  static const Color primaryDark = Color(0xFF0099CC);
-  static const Color primaryLight = Color(0xFF66E5FF);
+  // Primary Colors — Cerebra-style violet
+  static const Color primary = Color(0xFF8B6DFF);
+  static const Color primaryDark = Color(0xFF6D4FD9);
+  static const Color primaryLight = Color(0xFFB8A4FF);
 
-  // 🌙 Dark Mode Background Colors
-  static const Color backgroundDark = Color(0xFF0A0E1A);
-  static const Color backgroundCard = Color(0xFF111827);
-  static const Color backgroundCardLight = Color(0xFF1A2235);
+  // 🌙 Dark Mode Background Colors — deep purple-black
+  static const Color backgroundDark = Color(0xFF0A0814);
+  static const Color backgroundCard = Color(0xFF14111F);
+  static const Color backgroundCardLight = Color(0xFF1E1A30);
 
   // ☀️ Light Mode Background Colors (زیادکراو)
-  static const Color backgroundLight = Color(0xFFF5F7FA);
+  static const Color backgroundLight = Color(0xFFF4F2FB);
   static const Color backgroundCardLightMode = Color(0xFFFFFFFF);
-  static const Color backgroundCardLightAlt = Color(0xFFF0F2F5);
-  static const Color surfaceLight = Color(0xFFE8ECF4);
+  static const Color backgroundCardLightAlt = Color(0xFFF0EEF8);
+  static const Color surfaceLight = Color(0xFFE9E5F6);
 
   // Surface Colors
-  static const Color surfaceDark = Color(0xFF0F1524);
+  static const Color surfaceDark = Color(0xFF0F0C1C);
 
   // Neon Accents
-  static const Color neonBlue = Color(0xFF00D4FF);
-  static const Color neonCyan = Color(0xFF00FFE0);
+  static const Color neonBlue = Color(0xFF8B6DFF);
+  static const Color neonCyan = Color(0xFF38BDF8);
   static const Color neonPurple = Color(0xFF7C3AED);
-  static const Color neonPink = Color(0xFFFF0080);
-  static const Color neonGreen = Color(0xFF00FF88);
+  static const Color neonPink = Color(0xFFE05AFF);
+  static const Color neonGreen = Color(0xFF34D399);
 
   // Status Colors
-  static const Color success = Color(0xFF00FF88);
-  static const Color warning = Color(0xFFFFB800);
-  static const Color error = Color(0xFFFF3366);
-  static const Color info = Color(0xFF00D4FF);
+  static const Color success = Color(0xFF34D399);
+  static const Color warning = Color(0xFFFBBF24);
+  static const Color error = Color(0xFFF43F5E);
+  static const Color info = Color(0xFF8B6DFF);
 
   // Risk Colors
-  static const Color riskLowColor = Color(0xFF00FF88);
-  static const Color riskMediumColor = Color(0xFFFFB800);
-  static const Color riskHighColor = Color(0xFFFF6600);
-  static const Color riskCriticalColor = Color(0xFFFF0033);
+  static const Color riskLowColor = Color(0xFF34D399);
+  static const Color riskMediumColor = Color(0xFFFBBF24);
+  static const Color riskHighColor = Color(0xFFFB923C);
+  static const Color riskCriticalColor = Color(0xFFF43F5E);
 
   // Grade Colors
-  static const Color gradeAColor = Color(0xFF00FF88);
-  static const Color gradeBColor = Color(0xFF00D4FF);
-  static const Color gradeCColor = Color(0xFFFFB800);
-  static const Color gradeDColor = Color(0xFFFF6600);
-  static const Color gradeFColor = Color(0xFFFF0033);
+  static const Color gradeAColor = Color(0xFF34D399);
+  static const Color gradeBColor = Color(0xFF8B6DFF);
+  static const Color gradeCColor = Color(0xFFFBBF24);
+  static const Color gradeDColor = Color(0xFFFB923C);
+  static const Color gradeFColor = Color(0xFFF43F5E);
 
   // 🌙 Dark Mode Text Colors
   static const Color textPrimary = Color(0xFFFFFFFF);
@@ -142,15 +145,15 @@ class AppColors {
   static const Color textSecondaryLight = Color(0xFF666666);
   static const Color textMutedLight = Color(0xFF999999);
 
-  // Glassmorphism
-  static const Color glassBorder = Color(0x33FFFFFF);
+  // Glassmorphism — subtle violet-tinted borders
+  static const Color glassBorder = Color(0x33A78BFA);
   static const Color glassBorderLight = Color(0x33000000); // بۆ Light Mode
-  static const Color glassBackground = Color(0x1AFFFFFF);
+  static const Color glassBackground = Color(0x14B8A4FF);
   static const Color glassBackgroundLight = Color(0x1A000000); // بۆ Light Mode
 
   // 🌙 Dark Mode Shimmer
-  static const Color shimmerBase = Color(0xFF1A2235);
-  static const Color shimmerHighlight = Color(0xFF2A3A4A);
+  static const Color shimmerBase = Color(0xFF1E1A30);
+  static const Color shimmerHighlight = Color(0xFF2C2545);
 
   // ☀️ Light Mode Shimmer (زیادکراو)
   static const Color shimmerBaseLight = Color(0xFFE0E0E0);

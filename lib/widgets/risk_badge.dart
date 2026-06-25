@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Risk level badge widget
@@ -20,6 +21,7 @@ class RiskBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = AppTheme.riskToColor(risk);
+    final label = AppStrings.of(context).risk(risk);
 
     return Container(
       padding: padding ??
@@ -55,7 +57,7 @@ class RiskBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            risk.toUpperCase(),
+            label.toUpperCase(),
             style: TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: fontSize,

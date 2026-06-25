@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
-import 'package:mr_helper_security_analyzer/core/theme.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Statistics dashboard with charts and analytics
@@ -29,7 +30,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('STATISTICS'),
+        title: Text(AppStrings.of(context).statisticsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -38,14 +39,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => context.read<ScanProvider>().loadStatistics(),
-            tooltip: 'Refresh',
+            tooltip: AppStrings.of(context).refresh,
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: Consumer<ScanProvider>(
             builder: (context, provider, _) {
@@ -92,7 +90,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         Expanded(
           child: _buildSummaryCard(
             icon: Icons.travel_explore_rounded,
-            label: 'Total Scans',
+            label: AppStrings.of(context).totalScans,
             value: '${provider.totalScans}',
             color: AppColors.neonBlue,
           ),
@@ -101,7 +99,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         Expanded(
           child: _buildSummaryCard(
             icon: Icons.score_rounded,
-            label: 'Avg Score',
+            label: AppStrings.of(context).avgScore,
             value: provider.averageScore.toStringAsFixed(1),
             color: AppColors.success,
           ),
@@ -151,7 +149,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     if (distribution.isEmpty) {
       return GlassmorphismCard(
         padding: const EdgeInsets.all(AppConstants.paddingLg),
-        child: _buildEmptyChart(),
+        child: _buildEmptyChart(context),
       );
     }
 
@@ -160,9 +158,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'RISK DISTRIBUTION',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).riskDistribution,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -186,7 +184,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           Wrap(
             spacing: 16,
             runSpacing: 8,
-            children: _buildLegend(distribution),
+            children: _buildLegend(context, distribution),
           ),
         ],
       ),
@@ -223,7 +221,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     }).toList();
   }
 
-  List<Widget> _buildLegend(Map<String, int> distribution) {
+  List<Widget> _buildLegend(
+      BuildContext context, Map<String, int> distribution) {
+    final s = AppStrings.of(context);
     final colorMap = <String, Color>{
       AppConstants.riskLow: AppColors.riskLowColor,
       AppConstants.riskMedium: AppColors.riskMediumColor,
@@ -245,7 +245,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(width: 6),
           Text(
-            '${entry.key} (${entry.value})',
+            '${s.risk(entry.key)} (${entry.value})',
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -256,24 +256,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     }).toList();
   }
 
-  Widget _buildEmptyChart() {
-    return const Column(
+  Widget _buildEmptyChart(BuildContext context) {
+    return Column(
       children: [
-        SizedBox(height: 20),
-        Icon(
+        const SizedBox(height: 20),
+        const Icon(
           Icons.pie_chart_outline_rounded,
           size: 48,
           color: AppColors.textMuted,
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text(
-          'No risk data available',
-          style: TextStyle(
+          AppStrings.of(context).noRiskData,
+          style: const TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -286,9 +286,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'MOST SCANNED WEBSITES',
-            style: TextStyle(
+          Text(
+            AppStrings.of(context).mostScanned,
+            style: const TextStyle(
               fontFamily: 'JetBrainsMono',
               fontSize: 11,
               color: AppColors.textMuted,
@@ -297,12 +297,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: 12),
           if (websites.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Center(
                 child: Text(
-                  'No scan data yet',
-                  style: TextStyle(
+                  AppStrings.of(context).noScanDataYet,
+                  style: const TextStyle(
                     color: AppColors.textMuted,
                   ),
                 ),

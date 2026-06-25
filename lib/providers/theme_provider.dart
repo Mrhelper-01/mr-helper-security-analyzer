@@ -5,11 +5,11 @@ import '../core/theme.dart';
 /// Theme provider for managing light/dark mode
 
 class ThemeProvider extends ChangeNotifier {
-  // دۆخی هەنووکەیی تیم (ڕووناک یان تاریک)
-  ThemeData _currentTheme = lightMode;
+  // دۆخی هەنووکەیی تیم (ڕووناک یان تاریک) — تاریک بە بنەڕەت
+  ThemeData _currentTheme = darkMode;
 
   // ئایا دۆخی تاریک چالاکە؟
-  bool _isDarkMode = false;
+  bool _isDarkMode = true;
 
   // گەڕانەوەی ThemeData ی هەنووکەیی
   ThemeData get themeData => _currentTheme;
@@ -47,11 +47,11 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// گەڕانەوە بە دۆخی تاریک
+  /// دانانی دۆخ بەپێی نرخی پێدراو (true = تاریک، false = ڕووناک)
   void setDarkMode(bool value) {
-    if (_isDarkMode) return;
-    _currentTheme = darkMode;
-    _isDarkMode = true;
+    if (_isDarkMode == value) return;
+    _isDarkMode = value;
+    _currentTheme = value ? darkMode : lightMode;
     notifyListeners();
   }
 }

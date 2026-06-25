@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
+import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Scan history screen with list, sort, and delete functionality
@@ -27,20 +30,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _confirmDelete(String id, String url) async {
+    final s = context.read<LocaleProvider>().strings;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Scan'),
-        content: Text('Are you sure you want to delete the scan for\n$url?'),
+        title: Text(s.deleteScanTitle),
+        content: Text(s.deleteScanConfirm(url)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
+            child: Text(s.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('DELETE'),
+            child: Text(s.delete),
           ),
         ],
       ),
@@ -52,7 +56,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Scan deleted successfully'),
+              content: Text(s.scanDeleted),
               backgroundColor: AppColors.success.withValues(alpha: 0.3),
             ),
           );
@@ -61,7 +65,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to delete: $e'),
+              content: Text('${s.failedDelete}: $e'),
               backgroundColor: AppColors.error.withValues(alpha: 0.3),
             ),
           );
@@ -74,7 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SCAN HISTORY'),
+        title: Text(AppStrings.of(context).scanHistory),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -89,21 +93,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       : Icons.arrow_downward_rounded,
                 ),
                 onPressed: () => provider.toggleSortOrder(),
-                tooltip: 'Sort by date',
+                tooltip: AppStrings.of(context).sortByDate,
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => context.read<ScanProvider>().loadScanHistory(),
-            tooltip: 'Refresh',
+            tooltip: AppStrings.of(context).refresh,
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: Consumer<ScanProvider>(
             builder: (context, provider, _) {
@@ -161,9 +162,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 color: AppColors.error,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Failed to Load History',
-                style: TextStyle(
+              Text(
+                AppStrings.of(context).failedLoadHistory,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -182,7 +183,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               OutlinedButton.icon(
                 onPressed: () => context.read<ScanProvider>().loadScanHistory(),
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('RETRY'),
+                label: Text(AppStrings.of(context).retry),
               ),
             ],
           ),
@@ -204,19 +205,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
               color: AppColors.textMuted.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'No Scan History',
-              style: TextStyle(
+            Text(
+              AppStrings.of(context).noScanHistory,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your security scan results will appear here',
+            Text(
+              AppStrings.of(context).historyWillAppear,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
               ),
@@ -225,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ElevatedButton.icon(
               onPressed: () => Navigator.pushNamed(context, AppRoutes.scanner),
               icon: const Icon(Icons.security_rounded, size: 18),
-              label: const Text('START A SCAN'),
+              label: Text(AppStrings.of(context).startAScan),
             ),
           ],
         ),

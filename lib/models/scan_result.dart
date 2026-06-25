@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mr_helper_security_analyzer/models/security_finding.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Model representing a security scan result
@@ -15,6 +16,18 @@ class ScanResult {
   final Map<String, dynamic> cookies;
   final DateTime? timestamp;
 
+  /// Server software disclosure: {'server': String?, 'poweredBy': String?,
+  /// 'disclosed': bool}. Empty map when nothing was disclosed.
+  final Map<String, dynamic> serverInfo;
+
+  /// TLS certificate details (mobile/desktop only): {'checked': bool,
+  /// 'valid': bool, 'issuer': String?, 'subject': String?,
+  /// 'expiresOn': String?, 'daysRemaining': int?, 'error': String?}.
+  final Map<String, dynamic> certificate;
+
+  /// Detailed findings with severity, used to drive the report.
+  final List<SecurityFinding> findings;
+
   ScanResult({
     this.id,
     required this.url,
@@ -26,6 +39,9 @@ class ScanResult {
     required this.headers,
     required this.cookies,
     this.timestamp,
+    this.serverInfo = const {},
+    this.certificate = const {},
+    this.findings = const [],
   });
 
   /// Create from Firestore document
@@ -42,6 +58,11 @@ class ScanResult {
       headers: Map<String, bool>.from(data['headers'] as Map? ?? {}),
       cookies: Map<String, dynamic>.from(data['cookies'] as Map? ?? {}),
       timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
+      serverInfo: Map<String, dynamic>.from(data['serverInfo'] as Map? ?? {}),
+      certificate: Map<String, dynamic>.from(data['certificate'] as Map? ?? {}),
+      findings: ((data['findings'] as List?) ?? [])
+          .map((e) => SecurityFinding.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList(),
     );
   }
 
@@ -56,6 +77,9 @@ class ScanResult {
       'csp': csp,
       'headers': headers,
       'cookies': cookies,
+      'serverInfo': serverInfo,
+      'certificate': certificate,
+      'findings': findings.map((f) => f.toMap()).toList(),
       'timestamp': FieldValue.serverTimestamp(),
     };
   }
@@ -106,10 +130,24 @@ class ScanResult {
   /// Check if cookies are secure
   bool get areCookiesSecure {
     if (cookies.isEmpty) return false;
-    return cookies['secure'] == true && 
-           cookies['httpOnly'] == true && 
-           cookies['sameSite'] == 'Lax' || cookies['sameSite'] == 'Strict';
+    return cookies['secure'] == true &&
+        cookies['httpOnly'] == true &&
+        (cookies['sameSite'] == 'Lax' || cookies['sameSite'] == 'Strict');
   }
+
+  /// Findings sorted by severity (most serious first).
+  List<SecurityFinding> get sortedFindings {
+    final list = [...findings];
+    list.sort((a, b) => a.severity.weight.compareTo(b.severity.weight));
+    return list;
+  }
+
+  /// Number of findings at the given severity.
+  int countBySeverity(FindingSeverity severity) =>
+      findings.where((f) => f.severity == severity).length;
+
+  /// Whether the server software version was disclosed.
+  bool get serverDisclosed => serverInfo['disclosed'] == true;
 
   @override
   String toString() {

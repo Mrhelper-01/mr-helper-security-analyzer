@@ -49,25 +49,26 @@ class GlassmorphismCard extends StatelessWidget {
               borderRadius:
                   BorderRadius.circular(borderRadius ?? AppConstants.radiusLg),
               border: Border.all(
-                color: borderColor ?? AppColors.glassBorder,
-                width: 0.5,
+                color: borderColor ??
+                    AppColors.primaryLight.withValues(alpha: 0.18),
+                width: 1,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  glassColor?.withValues(alpha: 0.15) ??
-                      AppColors.glassBackground,
-                  (glassColor ?? AppColors.glassBackground)
-                      .withValues(alpha: 0.05),
+                  glassColor?.withValues(alpha: 0.16) ??
+                      Colors.white.withValues(alpha: 0.06),
+                  (glassColor ?? AppColors.primary).withValues(alpha: 0.02),
                 ],
               ),
               boxShadow: boxShadow ??
                   [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 5),
+                      color: AppColors.primary.withValues(alpha: 0.10),
+                      blurRadius: 28,
+                      spreadRadius: -6,
+                      offset: const Offset(0, 12),
                     ),
                   ],
             ),

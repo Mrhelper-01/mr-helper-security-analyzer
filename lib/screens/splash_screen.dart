@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
-// ignore: unused_import
-import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
+import 'package:mr_helper_security_analyzer/core/app_strings.dart';
+import 'package:mr_helper_security_analyzer/widgets/app_logo.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Animated splash screen with cybersecurity theme
@@ -115,45 +115,18 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Shield icon with animation
+                  // ✅ لۆگۆی نوێی MR HELPER
                   FadeTransition(
                     opacity: _fadeAnimation,
                     child: ScaleTransition(
                       scale: _scaleAnimation,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.neonBlue.withValues(alpha: 0.3),
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.neonBlue.withValues(alpha: 0.2),
-                              blurRadius: 30,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF0A1628),
-                              Color(0xFF111827),
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.shield_outlined,
-                          size: 60,
-                          color: AppColors.neonBlue,
-                        ),
+                      child: const AppLogo(
+                        size: 130,
+                        showText: false,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   // App title
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -163,14 +136,13 @@ class _SplashScreenState extends State<SplashScreen>
                           'MR HELPER',
                           style: TextStyle(
                             fontFamily: 'JetBrainsMono',
-                            fontSize: 36,
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             letterSpacing: 4,
                             shadows: [
                               Shadow(
-                                color:
-                                    AppColors.neonBlue.withValues(alpha: 0.5),
+                                color: AppColors.neonBlue.withAlpha(128),
                                 blurRadius: 20,
                               ),
                             ],
@@ -184,15 +156,15 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: AppColors.neonBlue.withValues(alpha: 0.3),
+                              color: AppColors.neonBlue.withAlpha(76),
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
-                            'WEB SECURITY ANALYZER',
-                            style: TextStyle(
+                          child: Text(
+                            AppStrings.of(context).webSecurityAnalyzerCaps,
+                            style: const TextStyle(
                               fontFamily: 'JetBrainsMono',
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.neonBlue,
                               letterSpacing: 3,
@@ -207,10 +179,10 @@ class _SplashScreenState extends State<SplashScreen>
                   SlideTransition(
                     position: _slideAnimation,
                     child: Text(
-                      'Securing the web, one scan at a time',
+                      AppStrings.of(context).securingTheWeb,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        color: AppColors.textSecondary.withAlpha(179),
                         letterSpacing: 1,
                         fontStyle: FontStyle.italic,
                       ),
@@ -234,14 +206,14 @@ class _SplashScreenState extends State<SplashScreen>
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.neonBlue.withValues(alpha: 0.5),
+                          AppColors.neonBlue.withAlpha(128),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'INITIALIZING...',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.of(context).initializing,
+                      style: const TextStyle(
                         fontFamily: 'JetBrainsMono',
                         fontSize: 10,
                         color: AppColors.textMuted,
@@ -266,8 +238,8 @@ class _SplashScreenState extends State<SplashScreen>
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.05),
+            color.withAlpha(38),
+            color.withAlpha(13),
             Colors.transparent,
           ],
         ),
@@ -281,7 +253,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.neonBlue.withValues(alpha: 0.03)
+      ..color = AppColors.neonBlue.withAlpha(8)
       ..strokeWidth = 0.5;
 
     const gridSize = 30.0;
