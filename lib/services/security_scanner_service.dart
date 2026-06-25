@@ -40,48 +40,74 @@ class SecurityScannerService {
     // Strip a leading "www." so email records resolve on the root domain.
     final domain = host.startsWith('www.') ? host.substring(4) : host;
 
-    Future<List<String>> txt(String name) async {
+    // Generic DoH query → list of the answer "data" strings (quotes stripped,
+    // trailing dots removed).
+    Future<List<String>> query(String name, String type) async {
       try {
         final res = await http.get(
-          Uri.parse('https://cloudflare-dns.com/dns-query?name=$name&type=TXT'),
+          Uri.parse(
+              'https://cloudflare-dns.com/dns-query?name=$name&type=$type'),
           headers: {'Accept': 'application/dns-json'},
         ).timeout(const Duration(seconds: 8));
         if (res.statusCode != 200) return const [];
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         final answers = (data['Answer'] as List?) ?? [];
         return answers
-            .map((a) => (a['data'] as String? ?? '').replaceAll('"', ''))
+            .map((a) => (a['data'] as String? ?? '')
+                .replaceAll('"', '')
+                .replaceAll(RegExp(r'\.$'), '')
+                .trim())
+            .where((s) => s.isNotEmpty)
             .toList();
       } catch (_) {
         return const [];
       }
     }
 
-    Future<bool> hasMx() async {
-      try {
-        final res = await http.get(
-          Uri.parse(
-              'https://cloudflare-dns.com/dns-query?name=$domain&type=MX'),
-          headers: {'Accept': 'application/dns-json'},
-        ).timeout(const Duration(seconds: 8));
-        if (res.statusCode != 200) return false;
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return ((data['Answer'] as List?) ?? []).isNotEmpty;
-      } catch (_) {
-        return false;
+    // Best-effort DKIM: probe the most common selectors.
+    Future<bool> hasDkim() async {
+      const selectors = [
+        'default',
+        'google',
+        'selector1',
+        'selector2',
+        'k1',
+        'dkim',
+        'mail',
+        's1',
+      ];
+      for (final sel in selectors) {
+        final recs = await query('$sel._domainkey.$domain', 'TXT');
+        if (recs.any((r) {
+          final l = r.toLowerCase();
+          return l.contains('v=dkim1') || l.contains('p=') && l.contains('k=');
+        })) {
+          return true;
+        }
       }
+      return false;
     }
 
     final results = await Future.wait([
-      txt(domain),
-      txt('_dmarc.$domain'),
-      hasMx(),
+      query(domain, 'TXT'),
+      query('_dmarc.$domain', 'TXT'),
+      query(domain, 'MX'),
+      query(domain, 'A'),
+      query(domain, 'NS'),
+      hasDkim(),
     ]);
     final rootTxt = results[0] as List<String>;
     final dmarcTxt = results[1] as List<String>;
-    final mx = results[2] as bool;
+    final mxList = results[2] as List<String>;
+    final aList = results[3] as List<String>;
+    final nsList = results[4] as List<String>;
+    final dkim = results[5] as bool;
 
-    final spf = rootTxt.any((t) => t.toLowerCase().startsWith('v=spf1'));
+    final spfRecord = rootTxt.firstWhere(
+      (t) => t.toLowerCase().startsWith('v=spf1'),
+      orElse: () => '',
+    );
+    final spf = spfRecord.isNotEmpty;
     final dmarcRecord = dmarcTxt.firstWhere(
       (t) => t.toLowerCase().startsWith('v=dmarc1'),
       orElse: () => '',
@@ -94,12 +120,26 @@ class SecurityScannerService {
       policy = m?.group(1)?.toLowerCase();
     }
 
+    // "MX data" looks like "10 mail.example.com" → keep just the host.
+    String? mxHost;
+    if (mxList.isNotEmpty) {
+      final parts = mxList.first.split(RegExp(r'\s+'));
+      mxHost = parts.length > 1 ? parts.last : parts.first;
+    }
+
     return {
       'checked': true,
       'spf': spf,
+      'spfRecord': spfRecord,
       'dmarc': dmarc,
+      'dmarcRecord': dmarcRecord,
       'dmarcPolicy': policy,
-      'mx': mx,
+      'dkim': dkim,
+      'mx': mxList.isNotEmpty,
+      'aRecord': aList.isNotEmpty ? aList.first : null,
+      'mxRecord': mxHost,
+      'nsRecord': nsList.isNotEmpty ? nsList.first : null,
+      'txtRecord': spf ? spfRecord : (rootTxt.isNotEmpty ? rootTxt.first : null),
     };
   }
 

@@ -122,6 +122,42 @@ class AppStrings {
   String get mxLabel => _t('Mail (MX)', 'ئیمەیڵ (MX)');
   String get foundLabel => _t('Found', 'هەیە');
   String get notFoundLabel => _t('Not found', 'نییە');
+  String get viewDetails => _t('View details', 'بینینی وردەکاری');
+  // DNS & Email detail page
+  String get dnsEmailTitle =>
+      _t('DNS & Email Security', 'ئەمنیەتی DNS و ئیمەیڵ');
+  String get dnsConfiguration => _t('DNS Configuration', 'ڕێکخستنی DNS');
+  String get wellConfigured => _t('Well Configured', 'باش ڕێکخراوە');
+  String get issuesFound => _t('Issues found', 'کێشە دۆزرایەوە');
+  String get aRecord => _t('A Record', 'ڕیکۆردی A');
+  String get mxRecord => _t('MX Record', 'ڕیکۆردی MX');
+  String get nsRecord => _t('NS Record', 'ڕیکۆردی NS');
+  String get txtRecord => _t('TXT Record', 'ڕیکۆردی TXT');
+  String get emailSecurity => _t('Email Security', 'ئەمنیەتی ئیمەیڵ');
+  String get spfFull =>
+      _t('SPF (Sender Policy Framework)', 'SPF (Sender Policy Framework)');
+  String get dkimFull =>
+      _t('DKIM (DomainKeys Identified Mail)', 'DKIM (DomainKeys Identified Mail)');
+  String get dmarcFull => _t(
+      'DMARC (Domain-based Message Auth, Reporting & Conformance)',
+      'DMARC (Domain-based Message Auth, Reporting & Conformance)');
+  String get validSpf => _t('Valid SPF record found', 'ڕیکۆردی SPF ـی دروست هەیە');
+  String get noSpf => _t('No SPF record found', 'هیچ ڕیکۆردی SPF نییە');
+  String get validDkim =>
+      _t('Valid DKIM record found', 'ڕیکۆردی DKIM ـی دروست هەیە');
+  String get noDkim => _t('No DKIM record found', 'هیچ ڕیکۆردی DKIM نییە');
+  String get validDmarc =>
+      _t('Valid DMARC record found', 'ڕیکۆردی DMARC ـی دروست هەیە');
+  String get noDmarc => _t('No DMARC record found', 'هیچ ڕیکۆردی DMARC نییە');
+  String get pass => _t('PASS', 'سەرکەوتوو');
+  String get fail => _t('FAIL', 'شکست');
+  String policyLine(String p) => _t('Policy: $p', 'سیاسەت: $p');
+  String get domainProtected => _t(
+      'Your domain is protected against email spoofing and phishing.',
+      'دۆمەینەکەت پارێزراوە بەرامبەر ساختەکاری ئیمەیڵ و فیشینگ.');
+  String get domainNotProtected => _t(
+      'Your domain may be vulnerable to email spoofing. Configure SPF, DKIM and DMARC.',
+      'دۆمەینەکەت لەوانەیە بەرامبەر ساختەکاری ئیمەیڵ لاواز بێت. SPF، DKIM و DMARC ڕێکبخە.');
   String get summary => _t('SUMMARY', 'کورتە');
   String get comparison => _t('COMPARISON', 'بەراورد');
   String get vsPrevious =>

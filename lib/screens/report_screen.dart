@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
+import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/printable_report.dart';
@@ -81,7 +82,7 @@ class ReportScreen extends StatelessWidget {
                 // Server / certificate info
                 _buildServerSection(scan, s),
                 // DNS & email security
-                _buildDnsSection(scan, s),
+                _buildDnsSection(context, scan, s),
                 // Summary
                 _buildSummarySection(scan, s),
                 const SizedBox(height: 20),
@@ -708,7 +709,7 @@ class ReportScreen extends StatelessWidget {
   }
 
   /// DNS & email security card. Hidden when no DNS probe ran.
-  Widget _buildDnsSection(ScanResult scan, AppStrings s) {
+  Widget _buildDnsSection(BuildContext context, ScanResult scan, AppStrings s) {
     final dns = scan.dnsInfo;
     if (dns['checked'] != true) return const SizedBox.shrink();
 
@@ -727,11 +728,26 @@ class ReportScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GlassmorphismCard(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.dnsEmail,
+              arguments: {'scanResult': scan}),
           padding: const EdgeInsets.all(AppConstants.paddingMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SectionLabel(text: s.dnsEmailSecurity, icon: Icons.alternate_email_rounded),
+              SectionLabel(
+                text: s.dnsEmailSecurity,
+                icon: Icons.alternate_email_rounded,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(s.viewDetails,
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.primaryLight)),
+                    const Icon(Icons.chevron_right_rounded,
+                        size: 18, color: AppColors.primaryLight),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
               row(s.spfLabel, dns['spf'] == true),
               row(s.dmarcLabel, dns['dmarc'] == true,

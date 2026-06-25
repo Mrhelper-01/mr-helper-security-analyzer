@@ -7,6 +7,7 @@ import 'package:mr_helper_security_analyzer/screens/report_screen.dart';
 import 'package:mr_helper_security_analyzer/screens/statistics_screen.dart';
 import 'package:mr_helper_security_analyzer/screens/settings_screen.dart';
 import 'package:mr_helper_security_analyzer/screens/about_screen.dart';
+import 'package:mr_helper_security_analyzer/screens/dns_email_screen.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Application routing system
@@ -22,6 +23,7 @@ class AppRoutes {
   static const String statistics = '/statistics';
   static const String settings = '/settings';
   static const String about = '/about';
+  static const String dnsEmail = '/dns-email';
 
   static Route<dynamic>? generateRoute(RouteSettings routeSettings) {
     switch (routeSettings.name) {
@@ -66,6 +68,14 @@ class AppRoutes {
       case about:
         return MaterialPageRoute(
           builder: (_) => const AboutScreen(),
+          settings: routeSettings,
+        );
+      case dnsEmail:
+        final args = routeSettings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => DnsEmailScreen(
+            scanResult: args!['scanResult'],
+          ),
           settings: routeSettings,
         );
       default:
