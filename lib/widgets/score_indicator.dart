@@ -67,7 +67,7 @@ class ScoreIndicator extends StatelessWidget {
                   Text(
                     grade,
                     style: TextStyle(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: 'UniQAIDAR',
                       fontSize: size * 0.3,
                       fontWeight: FontWeight.bold,
                       color: color,
@@ -84,7 +84,7 @@ class ScoreIndicator extends StatelessWidget {
                   Text(
                     '${(value * 100).round()}/100',
                     style: TextStyle(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: 'UniQAIDAR',
                       fontSize: size * 0.1,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,

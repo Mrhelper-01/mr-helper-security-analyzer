@@ -135,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
                         Text(
                           'MR HELPER',
                           style: TextStyle(
-                            fontFamily: 'JetBrainsMono',
+                            fontFamily: 'UniQAIDAR',
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -163,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Text(
                             AppStrings.of(context).webSecurityAnalyzerCaps,
                             style: const TextStyle(
-                              fontFamily: 'JetBrainsMono',
+                              fontFamily: 'UniQAIDAR',
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.neonBlue,
@@ -214,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen>
                     Text(
                       AppStrings.of(context).initializing,
                       style: const TextStyle(
-                        fontFamily: 'JetBrainsMono',
+                        fontFamily: 'UniQAIDAR',
                         fontSize: 10,
                         color: AppColors.textMuted,
                         letterSpacing: 3,

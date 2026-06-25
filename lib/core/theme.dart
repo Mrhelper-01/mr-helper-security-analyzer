@@ -20,6 +20,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'UniQAIDAR',
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundLight,
@@ -66,26 +67,26 @@ class AppTheme {
       // Text Theme - Light Mode
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimaryLight,
           fontSize: 32,
           fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
         ),
         displayMedium: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimaryLight,
           fontSize: 28,
           fontWeight: FontWeight.bold,
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimaryLight,
           fontSize: 24,
           fontWeight: FontWeight.bold,
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimaryLight,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -116,7 +117,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
         labelLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.primary,
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -138,7 +139,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppConstants.radiusMd),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'JetBrainsMono',
+            fontFamily: 'UniQAIDAR',
             fontSize: 16,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.0,
@@ -246,6 +247,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'UniQAIDAR',
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundDark,
@@ -291,26 +293,26 @@ class AppTheme {
       // Text Theme - Dark Mode
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimary,
           fontSize: 32,
           fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
         ),
         displayMedium: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimary,
           fontSize: 28,
           fontWeight: FontWeight.bold,
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimary,
           fontSize: 24,
           fontWeight: FontWeight.bold,
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -341,7 +343,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
         labelLarge: TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           color: AppColors.primary,
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -363,7 +365,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppConstants.radiusLg),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'JetBrainsMono',
+            fontFamily: 'UniQAIDAR',
             fontSize: 16,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.0,

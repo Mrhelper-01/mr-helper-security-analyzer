@@ -69,7 +69,7 @@ class HeaderCheckTile extends StatelessWidget {
                     Text(
                       headerName,
                       style: const TextStyle(
-                        fontFamily: 'JetBrainsMono',
+                        fontFamily: 'UniQAIDAR',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -106,7 +106,7 @@ class HeaderCheckTile extends StatelessWidget {
                 child: Text(
                   isPresent ? 'PRESENT' : 'MISSING',
                   style: TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                     color: isPresent ? AppColors.success : AppColors.error,

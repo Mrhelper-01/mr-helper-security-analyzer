@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
-import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
-import 'package:mr_helper_security_analyzer/providers/theme_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
+import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 
 /// MR HELPER - Web Application Security Analyzer
 /// Settings screen with theme toggle, app info, and developer info
@@ -24,10 +23,7 @@ class SettingsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -36,11 +32,6 @@ class SettingsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                // Appearance Section
-                _buildSectionHeader(AppStrings.of(context).appearance),
-                const SizedBox(height: 12),
-                _buildThemeToggle(),
-                const SizedBox(height: 24),
                 // Language Section
                 _buildSectionHeader('${AppStrings.of(context).language} / زمان'),
                 const SizedBox(height: 12),
@@ -75,68 +66,12 @@ class SettingsScreen extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           fontSize: 11,
           color: AppColors.textMuted,
           letterSpacing: 2,
         ),
       ),
-    );
-  }
-
-  Widget _buildThemeToggle() {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
-        return GlassmorphismCard(
-          padding: const EdgeInsets.all(AppConstants.paddingMd),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppConstants.radiusSm),
-                ),
-                child: const Icon(
-                  Icons.dark_mode_rounded,
-                  color: AppColors.warning,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppStrings.of(context).darkMode,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      AppStrings.of(context).toggleDarkTheme,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: themeProvider.isDarkMode,
-                onChanged: (value) => themeProvider.setDarkMode(value),
-                activeThumbColor: AppColors.primary,
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 

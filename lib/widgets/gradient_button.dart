@@ -70,7 +70,7 @@ class GradientButton extends StatelessWidget {
                   Text(
                     label,
                     style: const TextStyle(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: 'UniQAIDAR',
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

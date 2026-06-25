@@ -118,7 +118,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 Text(
                   AppStrings.of(context).enterTargetUrl,
                   style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -161,7 +161,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
               ),
               style: const TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 color: Colors.white,
                 fontSize: 14,
               ),
@@ -297,7 +297,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Text(
             AppStrings.of(context).scanInProgress,
             style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -376,7 +376,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Text(
             AppStrings.of(context).scanFailed,
             style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -427,7 +427,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Text(
             AppStrings.of(context).readyToScan,
             style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.white,

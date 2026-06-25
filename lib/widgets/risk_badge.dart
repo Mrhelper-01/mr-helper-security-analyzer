@@ -59,7 +59,7 @@ class RiskBadge extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
               color: color,

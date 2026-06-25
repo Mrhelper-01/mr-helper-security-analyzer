@@ -72,7 +72,7 @@ class StatsCard extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: color,

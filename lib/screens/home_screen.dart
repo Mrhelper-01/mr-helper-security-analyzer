@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'MR HELPER',
               style: TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               AppStrings.of(context).appTagline,
               style: const TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 fontSize: 11,
                 color: AppColors.neonBlue,
                 letterSpacing: 2,
@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
             textAlign: TextAlign.center,
             text: const TextSpan(
               style: TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     AppStrings.of(context).viewAll,
                     style: const TextStyle(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: 'UniQAIDAR',
                       fontSize: 11,
                       color: AppColors.neonBlue,
                       letterSpacing: 1,
@@ -361,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   '${scan.score}',
                   style: TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.scoreToColor(scan.score),
@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     scan.displayUrl,
                     style: const TextStyle(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: 'UniQAIDAR',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -515,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'JetBrainsMono',
+                fontFamily: 'UniQAIDAR',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: color,

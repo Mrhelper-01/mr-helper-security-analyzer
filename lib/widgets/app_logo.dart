@@ -43,7 +43,7 @@ class AppLogo extends StatelessWidget {
           Text(
             'MR HELPER',
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: size * 0.2,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -53,7 +53,7 @@ class AppLogo extends StatelessWidget {
           Text(
             'CYBER SECURITY ANALYZER',
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: size * 0.1,
               color: Theme.of(context).textTheme.bodySmall?.color,
               letterSpacing: 1,

@@ -97,7 +97,7 @@ class AboutScreen extends StatelessWidget {
         Text(
           AppConstants.appName,
           style: TextStyle(
-            fontFamily: 'JetBrainsMono',
+            fontFamily: 'UniQAIDAR',
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -125,7 +125,7 @@ class AboutScreen extends StatelessWidget {
           child: const Text(
             'v${AppConstants.appVersion}',
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 12,
               color: AppColors.neonBlue,
               letterSpacing: 2,
@@ -156,7 +156,7 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 'MH',
                 style: TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.backgroundDark,
@@ -172,7 +172,7 @@ class AboutScreen extends StatelessWidget {
                 const Text(
                   AppConstants.developerName,
                   style: TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -183,7 +183,7 @@ class AboutScreen extends StatelessWidget {
                 Text(
                   s.flutterDeveloper,
                   style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 12,
                     color: AppColors.neonBlue,
                     letterSpacing: 1,
@@ -193,7 +193,7 @@ class AboutScreen extends StatelessWidget {
                 Text(
                   s.cyberEnthusiast,
                   style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 11,
                     color: AppColors.textMuted,
                     letterSpacing: 0.5,
@@ -222,7 +222,7 @@ class AboutScreen extends StatelessWidget {
               Text(
                 s.descriptionTitle,
                 style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 11,
                   color: AppColors.textMuted,
                   letterSpacing: 2,
@@ -259,7 +259,7 @@ class AboutScreen extends StatelessWidget {
               Text(
                 s.keyFeatures,
                 style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 11,
                   color: AppColors.textMuted,
                   letterSpacing: 2,
@@ -356,7 +356,7 @@ class AboutScreen extends StatelessWidget {
               Text(
                 s.technicalDetails,
                 style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 11,
                   color: AppColors.textMuted,
                   letterSpacing: 2,
@@ -392,7 +392,7 @@ class AboutScreen extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Colors.white,

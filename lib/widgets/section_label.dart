@@ -39,7 +39,7 @@ class SectionLabel extends StatelessWidget {
         Text(
           text,
           style: const TextStyle(
-            fontFamily: 'JetBrainsMono',
+            fontFamily: 'UniQAIDAR',
             fontSize: 11,
             color: AppColors.textSecondary,
             letterSpacing: 2,

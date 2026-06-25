@@ -187,7 +187,7 @@ class ReportScreen extends StatelessWidget {
           Text(
             s.securityScore,
             style: const TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 12,
               color: AppColors.textMuted,
               letterSpacing: 2,
@@ -249,7 +249,7 @@ class ReportScreen extends StatelessWidget {
           child: Text(
             value,
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: valueColor ?? Colors.white,
@@ -282,7 +282,7 @@ class ReportScreen extends StatelessWidget {
               child: Text(
                 '${scan.presentHeaderCount}/${scan.presentHeaderCount + scan.missingHeaderCount}',
                 style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryLight,
@@ -395,7 +395,7 @@ class ReportScreen extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -447,7 +447,7 @@ class ReportScreen extends StatelessWidget {
                 Text(
                   s.sameSitePolicy,
                   style: const TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -512,7 +512,7 @@ class ReportScreen extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: color,
@@ -630,7 +630,7 @@ class ReportScreen extends StatelessWidget {
               child: Text(
                 s.issueCount(findings.length),
                 style: const TextStyle(
-                  fontFamily: 'JetBrainsMono',
+                  fontFamily: 'UniQAIDAR',
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryLight,
@@ -694,7 +694,7 @@ class ReportScreen extends StatelessWidget {
                 child: Text(
                   s.severityLabel(finding.severity).toUpperCase(),
                   style: TextStyle(
-                    fontFamily: 'JetBrainsMono',
+                    fontFamily: 'UniQAIDAR',
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                     color: color,

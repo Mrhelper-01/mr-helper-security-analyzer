@@ -269,7 +269,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Text(
                       '${scan.score}',
                       style: TextStyle(
-                        fontFamily: 'JetBrainsMono',
+                        fontFamily: 'UniQAIDAR',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.scoreToColor(scan.score),
@@ -286,7 +286,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Text(
                         scan.displayUrl,
                         style: const TextStyle(
-                          fontFamily: 'JetBrainsMono',
+                          fontFamily: 'UniQAIDAR',
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -315,7 +315,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Text(
                           scan.grade,
                           style: TextStyle(
-                            fontFamily: 'JetBrainsMono',
+                            fontFamily: 'UniQAIDAR',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.scoreToColor(scan.score),

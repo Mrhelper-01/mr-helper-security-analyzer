@@ -124,7 +124,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           Text(
             value,
             style: TextStyle(
-              fontFamily: 'JetBrainsMono',
+              fontFamily: 'UniQAIDAR',
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: color,
@@ -207,7 +207,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         title: '${percentage.toStringAsFixed(0)}%',
         radius: 60,
         titleStyle: const TextStyle(
-          fontFamily: 'JetBrainsMono',
+          fontFamily: 'UniQAIDAR',
           fontSize: 11,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -315,7 +315,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         child: Text(
                           '${index + 1}. ${site.key}',
                           style: const TextStyle(
-                            fontFamily: 'JetBrainsMono',
+                            fontFamily: 'UniQAIDAR',
                             fontSize: 12,
                             color: Colors.white,
                           ),
@@ -326,7 +326,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       Text(
                         '${site.value}',
                         style: const TextStyle(
-                          fontFamily: 'JetBrainsMono',
+                          fontFamily: 'UniQAIDAR',
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
