@@ -97,7 +97,7 @@ lib/
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/mr-helper-security-analyzer.git
+git clone https://github.com/Mrhelper-01/mr-helper-security-analyzer.git
 cd mr-helper-security-analyzer
 ```
 
@@ -263,5 +263,5 @@ This project is licensed under the MIT License — see the LICENSE file for deta
 ---
 
 <div align="center">
-  <sub>© 2024 MR HELPER. All rights reserved.</sub>
+  <sub>© 2026 MR HELPER. All rights reserved.</sub>
 </div>
