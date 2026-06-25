@@ -6,6 +6,7 @@ import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/app_lock_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/risk_badge.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
@@ -21,12 +22,27 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  bool _unlocked = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ScanProvider>().loadScanHistory();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _init());
+  }
+
+  Future<void> _init() async {
+    final lock = context.read<AppLockProvider>();
+    if (lock.enabled) {
+      final reason = context.read<LocaleProvider>().strings.unlockHistory;
+      final ok = await lock.requireAuth(reason);
+      if (!ok) {
+        if (mounted) Navigator.pop(context);
+        return;
+      }
+    }
+    if (!mounted) return;
+    setState(() => _unlocked = true);
+    context.read<ScanProvider>().loadScanHistory();
   }
 
   Future<void> _confirmDelete(String id, String url) async {
@@ -106,24 +122,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       body: AuroraBackground(
         child: SafeArea(
-          child: Consumer<ScanProvider>(
-            builder: (context, provider, _) {
-              if (provider.isLoadingHistory) {
-                return _buildLoadingState();
-              }
+          child: !_unlocked
+              ? _buildLockedState()
+              : Consumer<ScanProvider>(
+                  builder: (context, provider, _) {
+                    if (provider.isLoadingHistory) {
+                      return _buildLoadingState();
+                    }
 
-              if (provider.historyError != null) {
-                return _buildErrorState(provider.historyError!);
-              }
+                    if (provider.historyError != null) {
+                      return _buildErrorState(provider.historyError!);
+                    }
 
-              if (provider.scanHistory.isEmpty) {
-                return _buildEmptyState();
-              }
+                    if (provider.scanHistory.isEmpty) {
+                      return _buildEmptyState();
+                    }
 
-              return _buildHistoryList(provider);
-            },
-          ),
+                    return _buildHistoryList(provider);
+                  },
+                ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLockedState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_rounded,
+              size: 56, color: AppColors.primary.withValues(alpha: 0.7)),
+          const SizedBox(height: 16),
+          Text(
+            AppStrings.of(context).unlockHistory,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _init,
+            icon: const Icon(Icons.fingerprint_rounded, size: 18),
+            label: Text(AppStrings.of(context).appLock),
+          ),
+        ],
       ),
     );
   }

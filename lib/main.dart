@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,7 +7,11 @@ import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/theme_provider.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/app_lock_provider.dart';
+import 'package:mr_helper_security_analyzer/services/notification_service.dart';
+import 'package:mr_helper_security_analyzer/services/background_worker.dart';
 import 'package:mr_helper_security_analyzer/firebase_options.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +36,16 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
   }
 
+  // Background monitoring (mobile only) + local notifications.
+  if (!kIsWeb) {
+    try {
+      await NotificationService.init();
+      await Workmanager().initialize(callbackDispatcher);
+    } catch (e) {
+      debugPrint('Monitoring init error: $e');
+    }
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -42,6 +57,9 @@ void main() async {
         ),
         ChangeNotifierProvider<LocaleProvider>(
           create: (_) => LocaleProvider(),
+        ),
+        ChangeNotifierProvider<AppLockProvider>(
+          create: (_) => AppLockProvider()..load(),
         ),
       ],
       child: const MrHelperApp(),

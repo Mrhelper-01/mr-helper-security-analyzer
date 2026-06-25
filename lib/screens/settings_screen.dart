@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/routes.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/app_lock_provider.dart';
 import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
@@ -36,6 +37,11 @@ class SettingsScreen extends StatelessWidget {
                 _buildSectionHeader('${AppStrings.of(context).language} / زمان'),
                 const SizedBox(height: 12),
                 _buildLanguageToggle(),
+                const SizedBox(height: 24),
+                // Security (app lock)
+                _buildSectionHeader(AppStrings.of(context).security),
+                const SizedBox(height: 12),
+                _buildAppLockToggle(),
                 const SizedBox(height: 24),
                 // App Info Section
                 _buildSectionHeader(AppStrings.of(context).application),
@@ -72,6 +78,65 @@ class SettingsScreen extends StatelessWidget {
           letterSpacing: 2,
         ),
       ),
+    );
+  }
+
+  Widget _buildAppLockToggle() {
+    return Consumer<AppLockProvider>(
+      builder: (context, lock, _) {
+        final s = AppStrings.of(context);
+        return GlassmorphismCard(
+          padding: const EdgeInsets.all(AppConstants.paddingMd),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+                ),
+                child: const Icon(Icons.fingerprint_rounded,
+                    color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.appLock,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text(
+                      lock.available ? s.appLockDesc : s.biometricUnavailable,
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: lock.enabled,
+                onChanged: lock.available
+                    ? (value) async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final ok = await lock.setEnabled(value, s.unlockHistory);
+                        if (!ok && value) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text(s.authFailed)),
+                          );
+                        }
+                      }
+                    : null,
+                activeThumbColor: AppColors.primary,
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

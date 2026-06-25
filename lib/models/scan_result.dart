@@ -25,6 +25,14 @@ class ScanResult {
   /// 'expiresOn': String?, 'daysRemaining': int?, 'error': String?}.
   final Map<String, dynamic> certificate;
 
+  /// DNS / email security: {'spf': bool, 'dmarc': bool, 'dmarcPolicy': String?,
+  /// 'mx': bool, 'checked': bool}.
+  final Map<String, dynamic> dnsInfo;
+
+  /// Discovery probes: {'securityTxt': bool, 'robotsTxt': bool,
+  /// 'exposedGit': bool, 'exposedEnv': bool, 'exposedHtaccess': bool}.
+  final Map<String, dynamic> discoveryInfo;
+
   /// Detailed findings with severity, used to drive the report.
   final List<SecurityFinding> findings;
 
@@ -41,6 +49,8 @@ class ScanResult {
     this.timestamp,
     this.serverInfo = const {},
     this.certificate = const {},
+    this.dnsInfo = const {},
+    this.discoveryInfo = const {},
     this.findings = const [],
   });
 
@@ -60,6 +70,9 @@ class ScanResult {
       timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
       serverInfo: Map<String, dynamic>.from(data['serverInfo'] as Map? ?? {}),
       certificate: Map<String, dynamic>.from(data['certificate'] as Map? ?? {}),
+      dnsInfo: Map<String, dynamic>.from(data['dnsInfo'] as Map? ?? {}),
+      discoveryInfo:
+          Map<String, dynamic>.from(data['discoveryInfo'] as Map? ?? {}),
       findings: ((data['findings'] as List?) ?? [])
           .map((e) => SecurityFinding.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(),
@@ -79,6 +92,8 @@ class ScanResult {
       'cookies': cookies,
       'serverInfo': serverInfo,
       'certificate': certificate,
+      'dnsInfo': dnsInfo,
+      'discoveryInfo': discoveryInfo,
       'findings': findings.map((f) => f.toMap()).toList(),
       'timestamp': FieldValue.serverTimestamp(),
     };

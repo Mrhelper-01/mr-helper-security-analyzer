@@ -161,4 +161,21 @@ class ScanProvider extends ChangeNotifier {
     _scanError = null;
     notifyListeners();
   }
+
+  /// Find the scan performed just before [current] for the same domain, used
+  /// for the comparison/diff view. Returns null when there is no earlier scan.
+  ScanResult? previousScanFor(ScanResult current) {
+    final same = _scanHistory
+        .where((h) => h.displayUrl == current.displayUrl)
+        .toList()
+      ..sort((a, b) => (b.timestamp ?? DateTime(2000))
+          .compareTo(a.timestamp ?? DateTime(2000)));
+    if (same.length < 2) return null;
+
+    var idx = current.id != null
+        ? same.indexWhere((h) => h.id == current.id)
+        : 0;
+    if (idx < 0) idx = 0;
+    return idx + 1 < same.length ? same[idx + 1] : null;
+  }
 }

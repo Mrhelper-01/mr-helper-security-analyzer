@@ -115,11 +115,32 @@ class AppStrings {
   String get cookieAnalysis => _t('COOKIE ANALYSIS', 'شیکاری کووکی');
   String get serverCertificate =>
       _t('SERVER & CERTIFICATE', 'سێرڤەر و سێرتیفیکەیت');
+  String get dnsEmailSecurity =>
+      _t('DNS & EMAIL SECURITY', 'ئەمنیەتی DNS و ئیمەیڵ');
+  String get spfLabel => _t('SPF', 'SPF');
+  String get dmarcLabel => _t('DMARC', 'DMARC');
+  String get mxLabel => _t('Mail (MX)', 'ئیمەیڵ (MX)');
+  String get foundLabel => _t('Found', 'هەیە');
+  String get notFoundLabel => _t('Not found', 'نییە');
   String get summary => _t('SUMMARY', 'کورتە');
+  String get comparison => _t('COMPARISON', 'بەراورد');
+  String get vsPrevious =>
+      _t('vs previous scan', 'بەراورد لەگەڵ سکانی پێشوو');
+  String get newIssues => _t('New issues', 'کێشەی نوێ');
+  String get resolvedIssues => _t('Resolved', 'چارەسەرکراو');
+  String get noChange => _t('No change', 'بێ گۆڕان');
+  String pointsUp(int n) => _t('+$n points', '+$n خاڵ');
+  String pointsDown(int n) => _t('-$n points', '-$n خاڵ');
   String get findings => _t('FINDINGS', 'دۆزراوەکان');
   String get noIssues => _t('Excellent! No security issues were detected.',
       'نایاب! هیچ کێشەیەکی ئەمنیەتی نەدۆزرایەوە.');
   String get shareReport => _t('Share PDF report', 'هاوبەشکردنی ڕاپۆرتی PDF');
+  String get monitorSite => _t('Monitor this site', 'چاودێری ئەم سایتە بکە');
+  String get monitorStarted => _t(
+      'Monitoring on — you will be alerted if security drops.',
+      'چاودێری چالاکە — ئاگادار دەکرێیتەوە ئەگەر ئاستی ئەمنیەت دابەزی.');
+  String get monitorStopped =>
+      _t('Monitoring turned off', 'چاودێری ناچالاک کرا');
   String get generatingPdf =>
       _t('Generating PDF report...', 'دروستکردنی ڕاپۆرتی PDF...');
   String get couldNotPdf =>
@@ -242,6 +263,35 @@ class AppStrings {
   String get featureCloudDesc => _t(
       'All scans stored securely in Firebase Firestore',
       'هەموو سکانەکان بە پارێزراوی لە Firebase Firestore هەڵدەگیرێن');
+  String get featureDnsTitle =>
+      _t('DNS & Email Security', 'ئەمنیەتی DNS و ئیمەیڵ');
+  String get featureDnsDesc => _t(
+      'Check SPF, DMARC and MX records over DNS-over-HTTPS',
+      'پشکنینی ڕیکۆردەکانی SPF، DMARC و MX بە DNS-over-HTTPS');
+  String get featureTlsTitle =>
+      _t('TLS Certificate Inspection', 'وردبینی سێرتیفیکەیتی TLS');
+  String get featureTlsDesc => _t(
+      'Validate the certificate, issuer and expiry date',
+      'پشتڕاستکردنەوەی سێرتیفیکەیت، دەرکەر و بەرواری بەسەرچوون');
+  String get featureDiscoveryTitle =>
+      _t('Exposed File Discovery', 'دۆزینەوەی فایلی ئاشکراکراو');
+  String get featureDiscoveryDesc => _t(
+      'Detect exposed .git, .env and config files',
+      'دۆزینەوەی فایلی ئاشکراکراوی .git، .env و ڕێکخستن');
+  String get featureMonitorTitle =>
+      _t('Continuous Monitoring', 'چاودێری بەردەوام');
+  String get featureMonitorDesc => _t(
+      'Periodic rescans with alerts when security drops',
+      'سکانی دووبارەی کاتی لەگەڵ ئاگادارکردنەوە کاتێک ئەمنیەت دابەزێت');
+  String get featureExportTitle =>
+      _t('PDF Reports (Kurdish & English)', 'ڕاپۆرتی PDF (کوردی و ئینگلیزی)');
+  String get featureExportDesc => _t(
+      'Share a full professional report in either language',
+      'هاوبەشکردنی ڕاپۆرتێکی پڕۆفیشناڵی تەواو بە هەردوو زمان');
+  String get featureLockTitle => _t('Biometric App Lock', 'قوفڵی بایۆمەتری');
+  String get featureLockDesc => _t(
+      'Protect scan history with fingerprint / PIN',
+      'پاراستنی مێژووی سکان بە فینگەرپرینت / PIN');
   String get technicalDetails => _t('TECHNICAL DETAILS', 'وردەکاری تەکنیکی');
   String get frameworkLabel => _t('Framework', 'چوارچێوە');
   String get backendLabel => _t('Backend', 'باکئێند');
@@ -320,6 +370,26 @@ class AppStrings {
       case FindingCode.certExpiringSoon:
         return _t('TLS certificate expiring soon',
             'سێرتیفیکەیتی TLS بەمزووانە بەسەردەچێت');
+      case FindingCode.missingSpf:
+        return _t('Missing SPF record', 'ڕیکۆردی SPF نییە');
+      case FindingCode.missingDmarc:
+        return _t('Missing DMARC record', 'ڕیکۆردی DMARC نییە');
+      case FindingCode.weakDmarc:
+        return _t('Weak DMARC policy (p=none)', 'سیاسەتی DMARC ـی لاواز (p=none)');
+      case FindingCode.exposedGit:
+        return _t('Exposed .git repository', 'مەخزەنی .git ئاشکراکراوە');
+      case FindingCode.exposedEnv:
+        return _t('Exposed .env file', 'فایلی .env ئاشکراکراوە');
+      case FindingCode.exposedConfig:
+        return _t('Exposed config file', 'فایلی ڕێکخستن ئاشکراکراوە');
+      case FindingCode.missingSecurityTxt:
+        return _t('No security.txt', 'فایلی security.txt نییە');
+      case FindingCode.permissiveCors:
+        return _t('Permissive CORS (Allow-Origin: *)',
+            'CORS ـی کراوە (Allow-Origin: *)');
+      case FindingCode.missingCoep:
+        return _t('Missing Cross-Origin-Embedder-Policy (COEP)',
+            'هێدەری COEP نییە');
       case FindingCode.other:
         return f.title;
     }
@@ -385,6 +455,42 @@ class AppStrings {
       case FindingCode.certExpiringSoon:
         return _t('The certificate expires in ${f.param} day(s).',
             'سێرتیفیکەیتەکە لە ${f.param} ڕۆژدا بەسەردەچێت.');
+      case FindingCode.missingSpf:
+        return _t(
+            'Without an SPF record, attackers can more easily spoof emails from this domain.',
+            'بەبێ ڕیکۆردی SPF، هێرشبەران بە ئاسانی دەتوانن ئیمەیڵی ساختە بەناوی ئەم دۆمەینەوە بنێرن.');
+      case FindingCode.missingDmarc:
+        return _t(
+            'Without DMARC, there is no policy telling receivers how to handle spoofed mail.',
+            'بەبێ DMARC، هیچ سیاسەتێک نییە بۆ ئەوەی وەرگرەکان چۆن مامەڵە لەگەڵ ئیمەیڵی ساختە بکەن.');
+      case FindingCode.weakDmarc:
+        return _t(
+            'DMARC is set to p=none, which only monitors and does not block spoofed mail.',
+            'DMARC لەسەر p=none دانراوە، کە تەنها چاودێری دەکات و ئیمەیڵی ساختە بلۆک ناکات.');
+      case FindingCode.exposedGit:
+        return _t(
+            'The /.git directory is publicly accessible, which can leak full source code.',
+            'بوخچەی /.git بۆ هەمووان بەردەستە، کە دەتوانێت هەموو سۆرس کۆدەکە بدزرێت.');
+      case FindingCode.exposedEnv:
+        return _t(
+            'The .env file is publicly accessible and may contain secrets/passwords.',
+            'فایلی .env بۆ هەمووان بەردەستە و لەوانەیە نهێنی/ووشەی نهێنی تێدابێت.');
+      case FindingCode.exposedConfig:
+        return _t(
+            'A server configuration file is publicly accessible.',
+            'فایلێکی ڕێکخستنی سێرڤەر بۆ هەمووان بەردەستە.');
+      case FindingCode.missingSecurityTxt:
+        return _t(
+            'No security.txt was found; researchers have no standard way to report issues.',
+            'هیچ security.txt نەدۆزرایەوە؛ توێژەران ڕێگەیەکی ستانداردیان نییە بۆ ڕاپۆرتکردنی کێشە.');
+      case FindingCode.permissiveCors:
+        return _t(
+            'Access-Control-Allow-Origin is set to *, allowing any site to read responses.',
+            'Access-Control-Allow-Origin لەسەر * دانراوە، کە ڕێگە بە هەر سایتێک دەدات وەڵامەکان بخوێنێتەوە.');
+      case FindingCode.missingCoep:
+        return _t(
+            'COEP, together with COOP, enables strong cross-origin isolation.',
+            'COEP لەگەڵ COOP، جیاکردنەوەی بەهێزی cross-origin چالاک دەکات.');
       case FindingCode.other:
         return f.description;
     }
@@ -443,10 +549,51 @@ class AppStrings {
       case FindingCode.certExpiringSoon:
         return _t('Renew the certificate before it expires.',
             'سێرتیفیکەیتەکە نوێ بکەرەوە پێش بەسەرچوونی.');
+      case FindingCode.missingSpf:
+        return _t('Publish an SPF TXT record, e.g. v=spf1 include:... -all',
+            'ڕیکۆردی SPF بڵاوبکەرەوە، بۆ نموونە v=spf1 include:... -all');
+      case FindingCode.missingDmarc:
+        return _t(
+            'Publish a _dmarc TXT record with at least p=quarantine.',
+            'ڕیکۆردی _dmarc بڵاوبکەرەوە بەلایەنی کەمەوە p=quarantine.');
+      case FindingCode.weakDmarc:
+        return _t('Strengthen DMARC to p=quarantine or p=reject.',
+            'DMARC بەهێزتر بکە بۆ p=quarantine یان p=reject.');
+      case FindingCode.exposedGit:
+        return _t('Block access to /.git or remove it from the web root.',
+            'ڕێگری لە دەستگەیشتن بە /.git بکە یان لە web root لایببە.');
+      case FindingCode.exposedEnv:
+        return _t('Remove .env from the web root and rotate any leaked secrets.',
+            'فایلی .env لە web root لاببە و هەر نهێنییەکی دزراو بگۆڕە.');
+      case FindingCode.exposedConfig:
+        return _t('Restrict access to configuration files.',
+            'دەستگەیشتن بە فایلەکانی ڕێکخستن سنووردار بکە.');
+      case FindingCode.missingSecurityTxt:
+        return _t('Add a /.well-known/security.txt with contact details.',
+            'فایلی /.well-known/security.txt زیاد بکە لەگەڵ زانیاری پەیوەندی.');
+      case FindingCode.permissiveCors:
+        return _t('Restrict Access-Control-Allow-Origin to trusted origins.',
+            'Access-Control-Allow-Origin سنووردار بکە بۆ سەرچاوە متمانەپێکراوەکان.');
+      case FindingCode.missingCoep:
+        return _t('Consider: Cross-Origin-Embedder-Policy: require-corp.',
+            'بیری لێبکەرەوە: Cross-Origin-Embedder-Policy: require-corp.');
       case FindingCode.other:
         return f.recommendation;
     }
   }
+
+  // --- App lock / biometric -------------------------------------------------
+  String get security => _t('SECURITY', 'ئاسایش');
+  String get appLock => _t('App Lock', 'قوفڵی ئەپ');
+  String get appLockDesc => _t('Require biometrics to open History',
+      'پێویستی بە بایۆمەتری بۆ کردنەوەی مێژوو');
+  String get unlockHistory =>
+      _t('Unlock to view scan history', 'بۆ بینینی مێژووی سکان قوفڵ بکەرەوە');
+  String get authFailed =>
+      _t('Authentication failed', 'سەلماندن سەرکەوتوو نەبوو');
+  String get biometricUnavailable => _t(
+      'Biometrics are not available on this device',
+      'بایۆمەتری لەسەر ئەم ئامێرە بەردەست نییە');
 
   // --- Settings -------------------------------------------------------------
   String get settings => _t('SETTINGS', 'ڕێکخستنەکان');

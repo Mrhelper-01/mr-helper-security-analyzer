@@ -6,11 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:mr_helper_security_analyzer/core/constants.dart';
 import 'package:mr_helper_security_analyzer/core/theme.dart';
 import 'package:mr_helper_security_analyzer/providers/locale_provider.dart';
+import 'package:mr_helper_security_analyzer/providers/scan_provider.dart';
 import 'package:mr_helper_security_analyzer/widgets/printable_report.dart';
 import 'package:mr_helper_security_analyzer/core/app_strings.dart';
 import 'package:mr_helper_security_analyzer/models/scan_result.dart';
 import 'package:mr_helper_security_analyzer/models/security_finding.dart';
 import 'package:mr_helper_security_analyzer/services/report_pdf_service.dart';
+import 'package:mr_helper_security_analyzer/services/monitor_service.dart';
 import 'package:mr_helper_security_analyzer/widgets/glassmorphism_card.dart';
 import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
@@ -45,6 +47,7 @@ class ReportScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          _MonitorButton(scan: scan),
           IconButton(
             icon: const Icon(Icons.share_rounded),
             tooltip: s.shareReport,
@@ -64,6 +67,8 @@ class ReportScreen extends StatelessWidget {
                 // Score & Grade Section
                 _buildScoreSection(scan, s),
                 const SizedBox(height: 20),
+                // Comparison with previous scan (if any)
+                _buildDiffSection(context, scan, s),
                 // URL & Risk Info
                 _buildUrlInfoSection(scan, s),
                 const SizedBox(height: 20),
@@ -75,6 +80,8 @@ class ReportScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 // Server / certificate info
                 _buildServerSection(scan, s),
+                // DNS & email security
+                _buildDnsSection(scan, s),
                 // Summary
                 _buildSummarySection(scan, s),
                 const SizedBox(height: 20),
@@ -593,6 +600,151 @@ class ReportScreen extends StatelessWidget {
     );
   }
 
+  /// Comparison with the previous scan of the same domain. Hidden if none.
+  Widget _buildDiffSection(
+      BuildContext context, ScanResult scan, AppStrings s) {
+    final prev = context.watch<ScanProvider>().previousScanFor(scan);
+    if (prev == null) return const SizedBox.shrink();
+
+    final delta = scan.score - prev.score;
+    final nowCodes = scan.findings.map((f) => f.code).toSet();
+    final prevCodes = prev.findings.map((f) => f.code).toSet();
+    final newCount =
+        nowCodes.difference(prevCodes).where((c) => c != FindingCode.other).length;
+    final resolvedCount = prevCodes
+        .difference(nowCodes)
+        .where((c) => c != FindingCode.other)
+        .length;
+
+    final Color deltaColor = delta > 0
+        ? AppColors.success
+        : (delta < 0 ? AppColors.error : AppColors.textMuted);
+    final String deltaText = delta > 0
+        ? s.pointsUp(delta)
+        : (delta < 0 ? s.pointsDown(-delta) : s.noChange);
+    final IconData deltaIcon = delta > 0
+        ? Icons.trending_up_rounded
+        : (delta < 0 ? Icons.trending_down_rounded : Icons.trending_flat_rounded);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GlassmorphismCard(
+          padding: const EdgeInsets.all(AppConstants.paddingMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SectionLabel(text: s.comparison, icon: Icons.compare_arrows_rounded),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(deltaIcon, color: deltaColor, size: 28),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(deltaText,
+                          style: TextStyle(
+                              fontFamily: 'UniQAIDAR',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: deltaColor)),
+                      Text('${prev.score} → ${scan.score}  •  ${s.vsPrevious}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textMuted)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _diffStat(s.resolvedIssues, resolvedCount,
+                        AppColors.success, Icons.check_circle_outline_rounded),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _diffStat(s.newIssues, newCount, AppColors.error,
+                        Icons.error_outline_rounded),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _diffStat(String label, int count, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppConstants.radiusSm),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
+          Text('$count',
+              style: TextStyle(
+                  fontFamily: 'UniQAIDAR',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// DNS & email security card. Hidden when no DNS probe ran.
+  Widget _buildDnsSection(ScanResult scan, AppStrings s) {
+    final dns = scan.dnsInfo;
+    if (dns['checked'] != true) return const SizedBox.shrink();
+
+    Widget row(String label, bool ok, {String? extra}) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _buildInfoRow(
+            label,
+            ok ? (extra ?? s.foundLabel) : s.notFoundLabel,
+            ok ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            valueColor: ok ? AppColors.success : AppColors.error,
+          ),
+        );
+
+    final policy = dns['dmarcPolicy'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GlassmorphismCard(
+          padding: const EdgeInsets.all(AppConstants.paddingMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SectionLabel(text: s.dnsEmailSecurity, icon: Icons.alternate_email_rounded),
+              const SizedBox(height: 14),
+              row(s.spfLabel, dns['spf'] == true),
+              row(s.dmarcLabel, dns['dmarc'] == true,
+                  extra: policy != null ? 'p=$policy' : null),
+              row(s.mxLabel, dns['mx'] == true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
   Color _severityColor(FindingSeverity s) {
     switch (s) {
       case FindingSeverity.critical:
@@ -760,4 +912,59 @@ class _Shot {
   final int width;
   final int height;
   const _Shot(this.bytes, this.width, this.height);
+}
+
+/// App-bar toggle that enables/disables periodic background monitoring of the
+/// scanned site.
+class _MonitorButton extends StatefulWidget {
+  final ScanResult scan;
+  const _MonitorButton({required this.scan});
+
+  @override
+  State<_MonitorButton> createState() => _MonitorButtonState();
+}
+
+class _MonitorButtonState extends State<_MonitorButton> {
+  bool _on = false;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    MonitorService.isMonitoring(widget.scan.url).then((v) {
+      if (mounted) setState(() => _on = v);
+    });
+  }
+
+  Future<void> _toggle() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final s = context.read<LocaleProvider>().strings;
+    try {
+      if (_on) {
+        await MonitorService.stop();
+        if (mounted) setState(() => _on = false);
+        messenger.showSnackBar(SnackBar(content: Text(s.monitorStopped)));
+      } else {
+        await MonitorService.start(widget.scan.url, widget.scan.score);
+        if (mounted) setState(() => _on = true);
+        messenger.showSnackBar(SnackBar(content: Text(s.monitorStarted)));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    return IconButton(
+      icon: Icon(_on
+          ? Icons.notifications_active_rounded
+          : Icons.notifications_none_rounded),
+      tooltip: s.monitorSite,
+      onPressed: _busy ? null : _toggle,
+    );
+  }
 }

@@ -58,6 +58,15 @@ enum FindingCode {
   cookieSameSiteNone,
   certInvalid,
   certExpiringSoon,
+  missingSpf,
+  missingDmarc,
+  weakDmarc,
+  exposedGit,
+  exposedEnv,
+  exposedConfig,
+  missingSecurityTxt,
+  permissiveCors,
+  missingCoep,
   other;
 
   static FindingCode fromId(String? id) => FindingCode.values.firstWhere(

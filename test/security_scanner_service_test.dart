@@ -223,4 +223,91 @@ void main() {
       );
     });
   });
+
+  group('DNS / email & discovery', () {
+    test('missing SPF and DMARC produce findings', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        fullyHardened,
+        dnsInfo: {'checked': true, 'spf': false, 'dmarc': false, 'mx': true},
+      );
+      expect(result.findings.any((f) => f.code == FindingCode.missingSpf),
+          isTrue);
+      expect(result.findings.any((f) => f.code == FindingCode.missingDmarc),
+          isTrue);
+    });
+
+    test('DMARC p=none is flagged as weak', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        fullyHardened,
+        dnsInfo: {
+          'checked': true,
+          'spf': true,
+          'dmarc': true,
+          'dmarcPolicy': 'none',
+          'mx': true,
+        },
+      );
+      expect(
+          result.findings.any((f) => f.code == FindingCode.weakDmarc), isTrue);
+      expect(result.findings.any((f) => f.code == FindingCode.missingDmarc),
+          isFalse);
+    });
+
+    test('strong DMARC produces no DMARC findings', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        fullyHardened,
+        dnsInfo: {
+          'checked': true,
+          'spf': true,
+          'dmarc': true,
+          'dmarcPolicy': 'reject',
+          'mx': true,
+        },
+      );
+      expect(result.findings.any((f) => f.code == FindingCode.weakDmarc),
+          isFalse);
+      expect(result.findings.any((f) => f.code == FindingCode.missingDmarc),
+          isFalse);
+    });
+
+    test('exposed .git and .env are critical findings', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        fullyHardened,
+        discoveryInfo: {
+          'checked': true,
+          'exposedGit': true,
+          'exposedEnv': true,
+          'securityTxt': true,
+        },
+      );
+      final critical = result.findings
+          .where((f) => f.severity == FindingSeverity.critical)
+          .map((f) => f.code)
+          .toList();
+      expect(critical, contains(FindingCode.exposedGit));
+      expect(critical, contains(FindingCode.exposedEnv));
+    });
+
+    test('permissive CORS header is flagged', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        {...fullyHardened, 'access-control-allow-origin': '*'},
+      );
+      expect(result.findings.any((f) => f.code == FindingCode.permissiveCors),
+          isTrue);
+    });
+
+    test('no DNS/discovery probe -> no such findings', () {
+      final result =
+          scanner.analyzeHeaders('https://secure.example', fullyHardened);
+      expect(result.findings.any((f) => f.code == FindingCode.missingSpf),
+          isFalse);
+      expect(result.findings.any((f) => f.code == FindingCode.exposedGit),
+          isFalse);
+    });
+  });
 }

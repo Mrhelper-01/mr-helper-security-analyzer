@@ -1,264 +1,197 @@
 # MR HELPER — Web Application Security Analyzer
 
 <div align="center">
-  <img src="assets/animations/placeholder.txt" alt="MR HELPER Logo" width="120"/>
   <h1>🛡️ MR HELPER</h1>
   <p><strong>Web Application Security Analyzer</strong></p>
-  <p>A professional mobile cybersecurity tool that analyzes website security headers, checks for vulnerabilities, and provides actionable security recommendations.</p>
+  <p>A professional mobile cybersecurity tool that analyzes website security headers, DNS/email configuration, TLS certificates and exposed files — then explains the findings and produces a shareable report.</p>
+  <p><sub>Version 2.0.0 · Flutter · Android-first</sub></p>
 </div>
 
 ---
 
 ## ✨ Features
 
-- **🔍 Security Scanner** — Scan any website's security posture in seconds
-- **📋 Header Analysis** — Checks CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-- **🍪 Cookie Audit** — Analyzes Secure, HttpOnly, and SameSite cookie flags
-- **📊 Scoring Engine** — 0–100 security score with letter grades (A–F)
-- **⚠️ Risk Classification** — Low, Medium, High, and Critical risk levels
-- **🔥 Cloud History** — All scans stored securely in Firebase Firestore
-- **📈 Statistics Dashboard** — Pie charts, risk distribution, most scanned websites
-- **📝 Detailed Reports** — Full breakdown with actionable recommendations
-- **🎨 Modern UI** — Glassmorphism design, neon cyber aesthetic, smooth animations
-- **🌙 Dark Theme** — Full dark mode with cyberpunk-inspired color palette
+### 🔍 Scanning engine
+- **Security headers** — CSP (incl. `unsafe-inline`/`unsafe-eval` quality), HSTS (`max-age`-aware), X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORP, COEP
+- **DNS & email security** — SPF, DMARC (with policy strength) and MX records via **DNS-over-HTTPS**
+- **TLS certificate inspection** — trust/validity, issuer, and expiry warnings (native socket)
+- **Exposed-file discovery** — detects publicly accessible `.git`, `.env`, `.htaccess`, plus `security.txt` / `robots.txt`
+- **Cookie audit** — Secure, HttpOnly and SameSite flags across all cookies
+- **Permissive CORS detection** — flags `Access-Control-Allow-Origin: *`
+- **Server disclosure** — flags leaked `Server` / `X-Powered-By` versions
+
+### 📊 Results & reporting
+- **Normalized 0–100 score** with letter grades (A–F) and Low/Medium/High/Critical risk
+- **Severity-ranked findings** — every issue has a severity, description and remediation
+- **Historical comparison (diff)** — score delta and new/resolved issues vs. the previous scan
+- **PDF reports** — share a full professional report in **English (vector)** or **Kurdish (rendered image with correct shaping)**
+- **Statistics dashboard** — risk distribution pie chart, most-scanned sites
+
+### 🔔 Monitoring & security
+- **Continuous monitoring** — periodic background rescans that send a **push notification** when a site's score drops
+- **Biometric app lock** — protect scan history with fingerprint / device PIN
+
+### 🌍 Experience
+- **Bilingual (i18n)** — full **Kurdish (Sorani, RTL)** and **English** UI, switchable at runtime
+- **Modern dark UI** — Cerebra-style violet aesthetic, aurora glow background, glassmorphism cards, gradient buttons
+- **Cloud history** — scans stored in Firebase Firestore
 
 ## 📱 Screens
 
 | Screen | Description |
 |--------|-------------|
-| **Splash** | Animated intro with grid background and neon glow effects |
-| **Home** | Dashboard with stats cards, recent scans, quick actions |
-| **Scanner** | URL input with validation and real-time scanning status |
-| **Report** | Comprehensive report with score, headers, cookies, recommendations |
-| **History** | Full scan history with sort and delete functionality |
-| **Statistics** | Pie chart risk distribution, most scanned websites ranking |
-| **Settings** | Dark mode toggle, app info, developer info |
-| **About** | App details, features list, technical stack |
+| **Splash** | Animated intro with grid background and neon glow |
+| **Home** | Dashboard with stats, recent scans, quick actions |
+| **Scanner** | URL input with validation and live scanning status |
+| **Report** | Score gauge, comparison, headers, cookies, server/cert, DNS & email, findings; share + monitor |
+| **History** | Scan history with sort/delete (optionally biometric-locked) |
+| **Statistics** | Risk distribution chart, most-scanned ranking |
+| **Settings** | Language, app lock, app & developer info |
+| **About** | Feature list and technical stack |
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Flutter | 3.x | Cross-platform UI framework |
-| Dart | 3.x | Programming language |
-| Firebase Core | ^2.24.2 | Firebase initialization |
-| Cloud Firestore | ^4.14.0 | NoSQL cloud database |
-| Provider | ^6.1.1 | State management |
-| http | ^1.1.2 | HTTP client for scanning |
-| fl_chart | ^0.66.2 | Interactive pie charts |
+| Technology | Purpose |
+|------------|---------|
+| Flutter / Dart | Cross-platform UI & logic |
+| Firebase Core + Cloud Firestore | Cloud-stored scan history |
+| Provider | State management |
+| http | Header fetch + DNS-over-HTTPS |
+| local_auth | Biometric app lock |
+| workmanager + flutter_local_notifications | Background monitoring & alerts |
+| shared_preferences | Local monitoring/app-lock state |
+| pdf + printing | Report generation & sharing |
+| fl_chart | Statistics charts |
+
+## 🔥 Scan Methodology & Scoring
+
+The app performs a **passive** analysis: it fetches the target, inspects HTTP response headers, the TLS certificate, DNS records, and probes a few well-known paths. The score is **normalized to 0–100** — each applicable check contributes weighted points to both the earned and the maximum-possible totals, so a fully-hardened site reaches a true 100 even when it sets no cookies.
+
+| Check | Weight |
+|-------|--------|
+| HTTPS | 25 |
+| Content-Security-Policy | 18 |
+| Strict-Transport-Security (HSTS) | 15 |
+| X-Frame-Options | 10 |
+| X-Content-Type-Options | 10 |
+| Referrer-Policy | 7 |
+| Permissions-Policy | 5 |
+| Cookie Secure / HttpOnly / SameSite | 4 each *(only when cookies are present)* |
+
+DNS/email, exposed-file, CORS and other checks are surfaced as **severity-ranked findings**.
+
+**Grades:** A (90–100) · B (80–89) · C (70–79) · D (60–69) · F (0–59)
+
+> ℹ️ **Mobile-first.** Browsers block cross-origin reads (CORS) and never expose `Set-Cookie` to JavaScript, so scanning runs natively on Android/iOS. The web build includes a best-effort proxy fallback but cannot read all headers.
 
 ## 📂 Project Structure
 
 ```
 lib/
-├── main.dart                 # App entry point
-├── firebase_options.dart     # Firebase configuration
+├── main.dart                       # App entry, providers, monitoring/notifications init
 ├── core/
-│   ├── constants.dart        # App constants, colors, theme values
-│   ├── theme.dart            # Dark theme configuration
-│   └── routes.dart           # Named routes and navigation
+│   ├── constants.dart              # Constants, colors (violet palette), score weights
+│   ├── theme.dart                  # Dark theme (UniQAIDAR font)
+│   ├── routes.dart                 # Named routes
+│   └── app_strings.dart            # Type-safe i18n (English + Kurdish) + finding text
 ├── models/
-│   └── scan_result.dart      # ScanResult data model
+│   ├── scan_result.dart            # ScanResult model (headers, cookies, cert, dns, findings)
+│   └── security_finding.dart       # SecurityFinding + FindingSeverity/FindingCode
 ├── providers/
-│   ├── scan_provider.dart    # Scan operations, history, stats
-│   └── theme_provider.dart   # Theme management
+│   ├── scan_provider.dart          # Scan ops, history, stats, diff lookup
+│   ├── theme_provider.dart         # Theme (dark-only)
+│   ├── locale_provider.dart        # Language + RTL
+│   └── app_lock_provider.dart      # Biometric app-lock preference
 ├── services/
-│   ├── firestore_service.dart    # Firestore CRUD operations
-│   └── security_scanner_service.dart  # Website scanning logic
+│   ├── firestore_service.dart      # Firestore CRUD
+│   ├── security_scanner_service.dart # Headers, DNS-over-HTTPS, discovery, scoring
+│   ├── cert_inspector*.dart        # TLS inspection (conditional io/stub for web)
+│   ├── report_pdf_service.dart     # English vector PDF + Kurdish image PDF
+│   ├── biometric_service.dart      # local_auth wrapper
+│   ├── monitor_service.dart        # Periodic-scan scheduling (WorkManager)
+│   ├── notification_service.dart   # Local notifications
+│   └── background_worker.dart      # WorkManager callback (background isolate)
 ├── utils/
-│   └── validators.dart       # URL validation utilities
+│   └── validators.dart             # URL validation
 ├── widgets/
-│   ├── glassmorphism_card.dart   # Reusable glass card
-│   ├── score_indicator.dart      # Circular score gauge
-│   ├── risk_badge.dart           # Risk level badge
-│   ├── stats_card.dart           # Statistics display card
-│   └── header_check_tile.dart    # Header check status tile
+│   ├── aurora_background.dart       # Layered glow background
+│   ├── gradient_button.dart         # Pill gradient CTA
+│   ├── section_label.dart           # Section headings
+│   ├── glassmorphism_card.dart      # Glass card
+│   ├── score_indicator.dart         # Animated gradient score gauge
+│   ├── printable_report.dart        # Flutter-rendered report for Kurdish PDF
+│   ├── risk_badge.dart / stats_card.dart / header_check_tile.dart
 └── screens/
-    ├── splash_screen.dart     # Animated splash
-    ├── home_screen.dart       # Main dashboard
-    ├── scanner_screen.dart    # URL scanner
-    ├── history_screen.dart    # Scan history
-    ├── report_screen.dart     # Detailed report
-    ├── statistics_screen.dart # Analytics & charts
-    ├── settings_screen.dart   # Settings
-    └── about_screen.dart      # About page
+    └── splash / home / scanner / report / history / statistics / settings / about
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) (3.0+)
-- [Firebase Account](https://console.firebase.google.com)
-- Android Studio / VS Code with Flutter extensions
+- A [Firebase](https://console.firebase.google.com) project (for history)
+- Android Studio / VS Code with the Flutter extension
 
-### Setup Instructions
-
-#### 1. Clone the Repository
+### Setup
 
 ```bash
 git clone https://github.com/Mrhelper-01/mr-helper-security-analyzer.git
 cd mr-helper-security-analyzer
-```
-
-#### 2. Install Dependencies
-
-```bash
 flutter pub get
 ```
 
-#### 3. Configure Firebase
-
-> **Important:** You must set up your own Firebase project to use Firestore features.
-
-1. Go to the [Firebase Console](https://console.firebase.google.com)
-2. Create a new project (or select existing)
-3. Add **Android app** with package name `com.mrhelper.securityanalyzer`
-4. Add **iOS app** with bundle ID `com.mrhelper.securityanalyzer`
-5. Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
-6. Place them in the respective platform directories:
-   - `android/app/google-services.json`
-   - `ios/Runner/GoogleService-Info.plist`
-
-#### 4. Generate Firebase Options
-
-In the terminal, run:
+**Configure Firebase** (history feature):
 
 ```bash
 dart run flutterfire configure
 ```
 
-This will generate the `lib/firebase_options.dart` file with your project credentials.
+Then enable **Firestore Database** in the Firebase Console (test mode for development).
 
-> **Note:** The existing `lib/firebase_options.dart` contains placeholder values. Running `flutterfire configure` will replace it with real credentials.
-
-#### 5. Enable Firestore
-
-1. In Firebase Console, go to **Firestore Database**
-2. Click **Create database**
-3. Choose a location
-4. Start in **test mode** (for development)
-5. Click **Enable**
-
-#### 6. Run the App
+**Run on a device** (Android recommended — scanning needs native networking):
 
 ```bash
 flutter run
 ```
 
-## 🔥 Security Scan Methodology
-
-The app performs a passive security analysis by examining HTTP response headers. It checks for:
-
-### Security Headers (70% of total score)
-| Header | Weight | Purpose |
-|--------|--------|---------|
-| HTTPS | 20 pts | Encrypted data transmission |
-| Content-Security-Policy | 15 pts | Prevents XSS & data injection |
-| Strict-Transport-Security | 15 pts | Enforces HTTPS connections |
-| X-Frame-Options | 10 pts | Prevents clickjacking |
-| X-Content-Type-Options | 10 pts | Prevents MIME sniffing |
-| Referrer-Policy | 10 pts | Controls referrer leakage |
-| Permissions-Policy | 10 pts | Restricts browser features |
-
-### Cookie Security (10% of total score)
-- **Secure flag** — Cookies sent over HTTPS only (5 pts)
-- **HttpOnly flag** — Cookies inaccessible to JavaScript (5 pts)
-- **SameSite attribute** — CSRF protection (5 pts, added to total via bonus)
-
-### Scoring
-- **A (90-100):** Excellent security posture
-- **B (80-89):** Good, minor improvements needed
-- **C (70-79):** Fair, several headers missing
-- **D (60-69):** Poor, many security gaps
-- **F (0-59):** Critical, immediate action required
-
-## 📊 Architecture
-
-```
-┌─────────────────────────────────────────────────┐
-│                   UI Layer                        │
-│  (Screens with Glassmorphism UI components)       │
-├─────────────────────────────────────────────────┤
-│                Provider Layer                     │
-│     (ScanProvider, ThemeProvider)                 │
-├─────────────────────────────────────────────────┤
-│               Service Layer                       │
-│  (FirestoreService, SecurityScannerService)       │
-├─────────────────────────────────────────────────┤
-│                    Data Layer                     │
-│   (ScanResult model, Firebase Firestore)          │
-└─────────────────────────────────────────────────┘
-```
-
-## 🎨 UI Theme
-
-- **Primary:** `#00D4FF` (Cyber Blue)
-- **Background:** `#0A0E1A` (Deep Space)
-- **Cards:** `#111827` with glassmorphism effect
-- **Accents:** Cyan, Purple, Pink, Green neon colors
-- **Font:** JetBrains Mono (monospace for code-like feel)
-- **Effects:** Backdrop blur, glow shadows, animated gradients
-
-## 🔧 Development
-
-### Build APK
-
-```bash
-flutter build apk --release
-```
-
-### Build iOS
-
-```bash
-flutter build ios --release
-```
-
-### Run Tests
+### Build & test
 
 ```bash
 flutter test
+flutter build apk --release
 ```
 
-### Code Generation (if applicable)
+> **Android notes:** `MainActivity` extends `FlutterFragmentActivity` (required by `local_auth`), and core-library desugaring is enabled in `android/app/build.gradle.kts` (required by `flutter_local_notifications`). Permissions used: `USE_BIOMETRIC`, `POST_NOTIFICATIONS`, `INTERNET`.
 
-```bash
-flutter pub run build_runner build
-```
+## 🎨 UI Theme
 
-## 📝 To-Do / Future Enhancements
+- **Primary:** `#8B6DFF` (violet)
+- **Background:** `#0A0814` (deep purple-black) with aurora glow
+- **Cards:** violet-tinted glassmorphism
+- **Font:** UniQAIDAR (bundled, full Kurdish + Latin support)
+- **Effects:** backdrop blur, glow shadows, gradient ring score gauge
 
-- [ ] Add light theme support
-- [ ] In-app webview for visual inspection
-- [ ] SSL certificate chain validation
-- [ ] Port scanning functionality
-- [ ] WHOIS and DNS lookups
-- [ ] Vulnerability database integration (CVE checks)
-- [ ] Export reports as PDF
-- [ ] Multiple language support (i18n)
-- [ ] Biometric authentication for sensitive actions
-- [ ] Dark web leak checking
+## ✅ Roadmap status
+
+**Shipped in 2.0.0:** TLS certificate inspection · DNS & email checks · exposed-file discovery · PDF export · multi-language (Kurdish/English) · biometric authentication · continuous monitoring & alerts · historical comparison.
+
+**Possible next steps:** vulnerability/CVE lookups · WHOIS · in-app webview · TLS cipher grading · dark-web breach checks (these last two and CVE require paid APIs).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request.
-
 1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit (`git commit -m 'Add AmazingFeature'`)
+4. Push (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the LICENSE file for details.
+Licensed under the MIT License — see the LICENSE file for details.
 
 ## 👨‍💻 Developer
 
-**MR HELPER**
-
-- Flutter Developer & Cybersecurity Enthusiast
-- Built with ❤️ using Flutter & Firebase
+**MR HELPER** — Flutter Developer & Cybersecurity Enthusiast · Built with ❤️ using Flutter & Firebase
 
 ---
 

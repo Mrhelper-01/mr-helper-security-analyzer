@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:mr_helper_security_analyzer/core/constants.dart';
@@ -31,6 +32,121 @@ class SecurityScannerService {
     } catch (_) {
       return const {};
     }
+  }
+
+  /// Query DNS over HTTPS (Cloudflare) for SPF / DMARC / MX. Best-effort.
+  Future<Map<String, dynamic>> _probeDnsEmail(String host) async {
+    if (host.isEmpty) return const {};
+    // Strip a leading "www." so email records resolve on the root domain.
+    final domain = host.startsWith('www.') ? host.substring(4) : host;
+
+    Future<List<String>> txt(String name) async {
+      try {
+        final res = await http.get(
+          Uri.parse('https://cloudflare-dns.com/dns-query?name=$name&type=TXT'),
+          headers: {'Accept': 'application/dns-json'},
+        ).timeout(const Duration(seconds: 8));
+        if (res.statusCode != 200) return const [];
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        final answers = (data['Answer'] as List?) ?? [];
+        return answers
+            .map((a) => (a['data'] as String? ?? '').replaceAll('"', ''))
+            .toList();
+      } catch (_) {
+        return const [];
+      }
+    }
+
+    Future<bool> hasMx() async {
+      try {
+        final res = await http.get(
+          Uri.parse(
+              'https://cloudflare-dns.com/dns-query?name=$domain&type=MX'),
+          headers: {'Accept': 'application/dns-json'},
+        ).timeout(const Duration(seconds: 8));
+        if (res.statusCode != 200) return false;
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        return ((data['Answer'] as List?) ?? []).isNotEmpty;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    final results = await Future.wait([
+      txt(domain),
+      txt('_dmarc.$domain'),
+      hasMx(),
+    ]);
+    final rootTxt = results[0] as List<String>;
+    final dmarcTxt = results[1] as List<String>;
+    final mx = results[2] as bool;
+
+    final spf = rootTxt.any((t) => t.toLowerCase().startsWith('v=spf1'));
+    final dmarcRecord = dmarcTxt.firstWhere(
+      (t) => t.toLowerCase().startsWith('v=dmarc1'),
+      orElse: () => '',
+    );
+    final dmarc = dmarcRecord.isNotEmpty;
+    String? policy;
+    if (dmarc) {
+      final m = RegExp(r'p=\s*(none|quarantine|reject)', caseSensitive: false)
+          .firstMatch(dmarcRecord);
+      policy = m?.group(1)?.toLowerCase();
+    }
+
+    return {
+      'checked': true,
+      'spf': spf,
+      'dmarc': dmarc,
+      'dmarcPolicy': policy,
+      'mx': mx,
+    };
+  }
+
+  /// Probe well-known paths and commonly-exposed files. Best-effort.
+  Future<Map<String, dynamic>> _probeDiscovery(String baseUrl) async {
+    final base = baseUrl.endsWith('/')
+        ? baseUrl.substring(0, baseUrl.length - 1)
+        : baseUrl;
+
+    // Returns the response if it looks like a genuine hit (200 + signature),
+    // guarding against soft-404 pages that return 200 for everything.
+    Future<bool> exists(String path, {String? signature}) async {
+      try {
+        final res = await http.get(
+          Uri.parse('$base$path'),
+          headers: {'User-Agent': 'MRHELPER-SecurityAnalyzer/2.0'},
+        ).timeout(const Duration(seconds: 8));
+        if (res.statusCode != 200) return false;
+        final body = res.body;
+        // A real file is unlikely to be served as an HTML error page.
+        final looksHtml = body.toLowerCase().contains('<!doctype html') ||
+            body.toLowerCase().contains('<html');
+        if (signature != null) {
+          return body.contains(signature) && !looksHtml;
+        }
+        return !looksHtml;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    final results = await Future.wait([
+      exists('/.well-known/security.txt', signature: 'Contact'),
+      exists('/robots.txt', signature: 'ser-agent'),
+      exists('/.git/HEAD', signature: 'ref:'),
+      exists('/.env', signature: '='),
+      exists('/.htaccess'),
+    ]);
+
+    return {
+      'checked': true,
+      'securityTxt': results[0],
+      'robotsTxt': results[1],
+      'exposedGit': results[2],
+      'exposedEnv': results[3],
+      'exposedHtaccess': results[4],
+    };
   }
 
   /// Fetch the target, going through proxies on web and directly elsewhere.
@@ -79,14 +195,21 @@ class SecurityScannerService {
       // Run the header fetch and the TLS certificate inspection CONCURRENTLY.
       // They are independent (the cert check opens its own socket), so doing
       // them in parallel keeps the total scan time short instead of adding up.
+      final host = Uri.parse(normalizedUrl).host;
       final certificateFuture = _inspectCertificateSafe(normalizedUrl);
+      final dnsFuture = _probeDnsEmail(host);
+      final discoveryFuture = _probeDiscovery(normalizedUrl);
       final response = await _fetchWithFallback(normalizedUrl);
       final certificate = await certificateFuture;
+      final dnsInfo = await dnsFuture;
+      final discoveryInfo = await discoveryFuture;
 
       // All the scoring logic lives in analyzeHeaders so it can be unit-tested
       // without performing a network request.
       return analyzeHeaders(normalizedUrl, response.headers,
-          certificate: certificate);
+          certificate: certificate,
+          dnsInfo: dnsInfo,
+          discoveryInfo: discoveryInfo);
     } on http.ClientException {
       throw Exception(
           'Network error occurred. Please check your internet connection.');
@@ -112,6 +235,8 @@ class SecurityScannerService {
     String normalizedUrl,
     Map<String, String> headers, {
     Map<String, dynamic> certificate = const {},
+    Map<String, dynamic> dnsInfo = const {},
+    Map<String, dynamic> discoveryInfo = const {},
   }) {
     final httpsEnabled = UrlValidator.isHttps(normalizedUrl);
 
@@ -153,6 +278,8 @@ class SecurityScannerService {
       cookies: cookies,
       serverInfo: serverInfo,
       certificate: certificate,
+      dnsInfo: dnsInfo,
+      discoveryInfo: discoveryInfo,
     );
 
     return ScanResult(
@@ -166,6 +293,8 @@ class SecurityScannerService {
       cookies: cookies,
       serverInfo: serverInfo,
       certificate: certificate,
+      dnsInfo: dnsInfo,
+      discoveryInfo: discoveryInfo,
       findings: findings,
       timestamp: DateTime.now(),
     );
@@ -201,6 +330,8 @@ class SecurityScannerService {
     required Map<String, dynamic> cookies,
     required Map<String, dynamic> serverInfo,
     required Map<String, dynamic> certificate,
+    Map<String, dynamic> dnsInfo = const {},
+    Map<String, dynamic> discoveryInfo = const {},
   }) {
     final findings = <SecurityFinding>[];
 
@@ -400,6 +531,110 @@ class SecurityScannerService {
             recommendation: 'Renew the certificate before it expires.',
           ));
         }
+      }
+    }
+
+    // Permissive CORS — any header value of "*" exposes responses to all sites.
+    if (headers['access-control-allow-origin']?.trim() == '*') {
+      findings.add(const SecurityFinding(
+        title: 'Permissive CORS (Allow-Origin: *)',
+        description:
+            'Access-Control-Allow-Origin is set to *, allowing any site to read responses.',
+        severity: FindingSeverity.medium,
+        code: FindingCode.permissiveCors,
+        recommendation:
+            'Restrict Access-Control-Allow-Origin to trusted origins.',
+      ));
+    }
+    if (!_hasNonEmpty(headers, 'cross-origin-embedder-policy')) {
+      findings.add(const SecurityFinding(
+        title: 'Missing Cross-Origin-Embedder-Policy (COEP)',
+        description:
+            'COEP, together with COOP, enables strong cross-origin isolation.',
+        severity: FindingSeverity.info,
+        code: FindingCode.missingCoep,
+        recommendation: 'Consider: Cross-Origin-Embedder-Policy: require-corp.',
+      ));
+    }
+
+    // DNS / email security findings (only when a DNS probe ran).
+    if (dnsInfo['checked'] == true) {
+      if (dnsInfo['spf'] != true) {
+        findings.add(const SecurityFinding(
+          title: 'Missing SPF record',
+          description:
+              'Without an SPF record, attackers can more easily spoof emails from this domain.',
+          severity: FindingSeverity.medium,
+          code: FindingCode.missingSpf,
+          recommendation:
+              'Publish an SPF TXT record, e.g. v=spf1 include:... -all',
+        ));
+      }
+      if (dnsInfo['dmarc'] != true) {
+        findings.add(const SecurityFinding(
+          title: 'Missing DMARC record',
+          description:
+              'Without DMARC, there is no policy telling receivers how to handle spoofed mail.',
+          severity: FindingSeverity.medium,
+          code: FindingCode.missingDmarc,
+          recommendation:
+              'Publish a _dmarc TXT record with at least p=quarantine.',
+        ));
+      } else if (dnsInfo['dmarcPolicy'] == 'none') {
+        findings.add(const SecurityFinding(
+          title: 'Weak DMARC policy (p=none)',
+          description:
+              'DMARC is set to p=none, which only monitors and does not block spoofed mail.',
+          severity: FindingSeverity.low,
+          code: FindingCode.weakDmarc,
+          recommendation: 'Strengthen DMARC to p=quarantine or p=reject.',
+        ));
+      }
+    }
+
+    // Discovery findings (exposed files are serious; missing security.txt is info).
+    if (discoveryInfo['checked'] == true) {
+      if (discoveryInfo['exposedGit'] == true) {
+        findings.add(const SecurityFinding(
+          title: 'Exposed .git repository',
+          description:
+              'The /.git directory is publicly accessible, which can leak full source code.',
+          severity: FindingSeverity.critical,
+          code: FindingCode.exposedGit,
+          recommendation:
+              'Block access to /.git or remove it from the web root.',
+        ));
+      }
+      if (discoveryInfo['exposedEnv'] == true) {
+        findings.add(const SecurityFinding(
+          title: 'Exposed .env file',
+          description:
+              'The .env file is publicly accessible and may contain secrets/passwords.',
+          severity: FindingSeverity.critical,
+          code: FindingCode.exposedEnv,
+          recommendation:
+              'Remove .env from the web root and rotate any leaked secrets.',
+        ));
+      }
+      if (discoveryInfo['exposedHtaccess'] == true) {
+        findings.add(const SecurityFinding(
+          title: 'Exposed config file',
+          description: 'A server configuration file is publicly accessible.',
+          severity: FindingSeverity.high,
+          code: FindingCode.exposedConfig,
+          recommendation: 'Restrict access to configuration files.',
+        ));
+      }
+      if (discoveryInfo['securityTxt'] != true) {
+        findings.add(const SecurityFinding(
+          title: 'No security.txt',
+          description:
+              'No security.txt was found; researchers have no standard way to report issues.',
+          severity: FindingSeverity.info,
+          code: FindingCode.missingSecurityTxt,
+          recommendation:
+              'Add a /.well-known/security.txt with contact details.',
+        ));
       }
     }
 
