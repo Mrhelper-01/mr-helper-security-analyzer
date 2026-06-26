@@ -12,17 +12,21 @@ import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 /// Settings screen with theme toggle, app info, and developer info
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  final bool embedded;
+  const SettingsScreen({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(AppStrings.of(context).settings),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: embedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.pop(context),
+              ),
       ),
       body: AuroraBackground(
         child: SafeArea(
@@ -95,8 +99,13 @@ class SettingsScreen extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusSm),
                 ),
-                child: const Icon(Icons.fingerprint_rounded,
-                    color: AppColors.primary, size: 20),
+                child: Icon(
+                  lock.hasFace
+                      ? Icons.face_rounded
+                      : Icons.fingerprint_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -110,7 +119,11 @@ class SettingsScreen extends StatelessWidget {
                             color: Colors.white)),
                     const SizedBox(height: 2),
                     Text(
-                      lock.available ? s.appLockDesc : s.biometricUnavailable,
+                      !lock.available
+                          ? s.biometricUnavailable
+                          : (lock.hasFace || lock.hasFingerprint
+                              ? s.appLockDesc
+                              : s.appLockDescPin),
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textMuted),
                     ),

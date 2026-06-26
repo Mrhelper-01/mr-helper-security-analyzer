@@ -12,7 +12,8 @@ import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 /// Statistics dashboard with charts and analytics
 
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  final bool embedded;
+  const StatisticsScreen({super.key, this.embedded = false});
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -31,11 +32,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(AppStrings.of(context).statisticsTitle),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: widget.embedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.pop(context),
+              ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),

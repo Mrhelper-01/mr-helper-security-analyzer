@@ -67,6 +67,7 @@ enum FindingCode {
   missingSecurityTxt,
   permissiveCors,
   missingCoep,
+  sqlInjection,
   other;
 
   static FindingCode fromId(String? id) => FindingCode.values.firstWhere(

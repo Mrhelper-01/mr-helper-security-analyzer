@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mr_helper_security_analyzer/screens/splash_screen.dart';
-import 'package:mr_helper_security_analyzer/screens/home_screen.dart';
+import 'package:mr_helper_security_analyzer/screens/main_shell.dart';
 import 'package:mr_helper_security_analyzer/screens/scanner_screen.dart';
 import 'package:mr_helper_security_analyzer/screens/history_screen.dart';
 import 'package:mr_helper_security_analyzer/screens/report_screen.dart';
@@ -34,7 +34,7 @@ class AppRoutes {
         );
       case home:
         return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const MainShell(),
           settings: routeSettings,
         );
       case scanner:
@@ -80,7 +80,7 @@ class AppRoutes {
         );
       default:
         return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const MainShell(),
         );
     }
   }

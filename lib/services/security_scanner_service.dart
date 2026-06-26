@@ -64,28 +64,16 @@ class SecurityScannerService {
       }
     }
 
-    // Best-effort DKIM: probe the most common selectors.
+    // Best-effort DKIM: probe common selectors CONCURRENTLY (not one by one,
+    // which used to make this very slow).
     Future<bool> hasDkim() async {
-      const selectors = [
-        'default',
-        'google',
-        'selector1',
-        'selector2',
-        'k1',
-        'dkim',
-        'mail',
-        's1',
-      ];
-      for (final sel in selectors) {
-        final recs = await query('$sel._domainkey.$domain', 'TXT');
-        if (recs.any((r) {
-          final l = r.toLowerCase();
-          return l.contains('v=dkim1') || l.contains('p=') && l.contains('k=');
-        })) {
-          return true;
-        }
-      }
-      return false;
+      const selectors = ['default', 'google', 'selector1', 'selector2', 'k1'];
+      final results = await Future.wait(
+          selectors.map((sel) => query('$sel._domainkey.$domain', 'TXT')));
+      return results.any((recs) => recs.any((r) {
+            final l = r.toLowerCase();
+            return l.contains('v=dkim1') || (l.contains('p=') && l.contains('k='));
+          }));
     }
 
     final results = await Future.wait([
@@ -189,6 +177,54 @@ class SecurityScannerService {
     };
   }
 
+  /// Common database error signatures used for error-based SQL-injection
+  /// detection. Lower-cased for matching.
+  static final RegExp _sqlErrorPattern = RegExp(
+    r'you have an error in your sql syntax|'
+    r'warning:\s*mysql|mysql_fetch|mysqli_|'
+    r'unclosed quotation mark after the character string|'
+    r'quoted string not properly terminated|'
+    r'incorrect syntax near|microsoft ole db provider for sql server|'
+    r'odbc sql server driver|'
+    r'ora-\d{4,5}|oracle error|'
+    r'postgresql.*error|pg_query|syntax error at or near|'
+    r'sqlite_error|sqlite3?::|unrecognized token|'
+    r'sql syntax.*near',
+    caseSensitive: false,
+  );
+
+  /// Non-destructive, error-based SQL-injection probe. Only existing query
+  /// parameters are tested by appending a single quote; the response is scanned
+  /// for database error signatures. No data is modified or extracted.
+  Future<Map<String, dynamic>> _probeSqlInjection(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (uri.queryParameters.isEmpty) {
+        return {'checked': true, 'tested': false};
+      }
+      for (final key in uri.queryParameters.keys) {
+        final injected = Map<String, String>.from(uri.queryParameters);
+        injected[key] = "${injected[key]}'";
+        final testUri = uri.replace(queryParameters: injected);
+        final res = await http.get(
+          testUri,
+          headers: {'User-Agent': 'MRHELPER-SecurityAnalyzer/2.0'},
+        ).timeout(const Duration(seconds: 8));
+        if (_sqlErrorPattern.hasMatch(res.body)) {
+          return {
+            'checked': true,
+            'tested': true,
+            'vulnerable': true,
+            'param': key,
+          };
+        }
+      }
+      return {'checked': true, 'tested': true, 'vulnerable': false};
+    } catch (_) {
+      return {'checked': true, 'tested': false};
+    }
+  }
+
   /// Fetch the target, going through proxies on web and directly elsewhere.
   Future<http.Response> _fetchWithFallback(String targetUrl) async {
     final requestHeaders = {
@@ -224,48 +260,87 @@ class SecurityScannerService {
             .trim());
   }
 
-  /// Perform a full security scan on the given URL
+  /// Perform a full security scan on the given URL.
   Future<ScanResult> performScan(String url) async {
     final normalizedUrl = UrlValidator.normalizeUrl(url);
 
     try {
-      // On web the browser blocks direct cross-origin reads (CORS), so route
-      // through a proxy that exposes the headers. On mobile/desktop we hit the
-      // target directly. Redirects are followed automatically.
-      // Run the header fetch and the TLS certificate inspection CONCURRENTLY.
-      // They are independent (the cert check opens its own socket), so doing
-      // them in parallel keeps the total scan time short instead of adding up.
-      final host = Uri.parse(normalizedUrl).host;
-      final certificateFuture = _inspectCertificateSafe(normalizedUrl);
-      final dnsFuture = _probeDnsEmail(host);
-      final discoveryFuture = _probeDiscovery(normalizedUrl);
-      final response = await _fetchWithFallback(normalizedUrl);
-      final certificate = await certificateFuture;
-      final dnsInfo = await dnsFuture;
-      final discoveryInfo = await discoveryFuture;
-
-      // All the scoring logic lives in analyzeHeaders so it can be unit-tested
-      // without performing a network request.
-      return analyzeHeaders(normalizedUrl, response.headers,
-          certificate: certificate,
-          dnsInfo: dnsInfo,
-          discoveryInfo: discoveryInfo);
-    } on http.ClientException {
-      throw Exception(
-          'Network error occurred. Please check your internet connection.');
+      return await _runScan(normalizedUrl);
     } catch (e) {
-      final message = e.toString();
-      if (message.contains('TimeoutException')) {
-        throw Exception(
-            'Request timed out. The server may be too slow or unreachable.');
+      // Many sites (especially test targets) are HTTP-only. If an HTTPS attempt
+      // failed to connect, retry once over HTTP so the scan still succeeds.
+      final reachability = _isReachabilityError(e);
+      if (reachability && normalizedUrl.startsWith('https://')) {
+        final httpUrl = normalizedUrl.replaceFirst('https://', 'http://');
+        try {
+          return await _runScan(httpUrl);
+        } catch (_) {
+          // fall through to error mapping below
+        }
       }
-      if (message.contains('SocketException') ||
-          message.contains('Failed host lookup')) {
-        throw Exception(
-            'Unable to connect to the server. Please check the URL and try again.');
-      }
-      throw Exception('Scan failed: ${message.replaceAll('Exception: ', '')}');
+      throw _mapError(e);
     }
+  }
+
+  bool _isReachabilityError(Object e) {
+    final m = e.toString();
+    return m.contains('TimeoutException') ||
+        m.contains('SocketException') ||
+        m.contains('HandshakeException') ||
+        m.contains('Connection refused') ||
+        m.contains('Failed host lookup') ||
+        m.contains('ClientException');
+  }
+
+  Exception _mapError(Object e) {
+    final message = e.toString();
+    if (message.contains('TimeoutException')) {
+      return Exception(
+          'Request timed out. The server may be too slow or unreachable.');
+    }
+    if (message.contains('SocketException') ||
+        message.contains('HandshakeException') ||
+        message.contains('Failed host lookup') ||
+        message.contains('ClientException')) {
+      return Exception(
+          'Unable to connect to the server. Please check the URL and try again.');
+    }
+    return Exception('Scan failed: ${message.replaceAll('Exception: ', '')}');
+  }
+
+  /// Runs all probes for [scanUrl] and builds the result. Throws raw errors so
+  /// the caller can decide whether to retry (e.g. an HTTP fallback).
+  Future<ScanResult> _runScan(String scanUrl) async {
+    // On web the browser blocks direct cross-origin reads (CORS), so route
+    // through a proxy. On mobile/desktop we hit the target directly.
+    final host = Uri.parse(scanUrl).host;
+
+    // DNS (hits Cloudflare) and the TLS cert (its own socket) target DIFFERENT
+    // hosts, so they can run alongside the main fetch without competing.
+    final dnsFuture = _probeDnsEmail(host);
+    final certificateFuture = _inspectCertificateSafe(scanUrl);
+
+    // The MAIN request runs alone against the target host first — hammering a
+    // slow site with several parallel probes was causing timeouts.
+    final response = await _fetchWithFallback(scanUrl);
+
+    // Now the lighter probes that also hit the target host.
+    final discoveryInfo = await _probeDiscovery(scanUrl).catchError((_) => <String, dynamic>{});
+    final injectionInfo = await _probeSqlInjection(scanUrl).catchError((_) => <String, dynamic>{});
+
+    // Best-effort: never let a slow DNS/cert probe block the result.
+    final certificate = await certificateFuture
+        .timeout(const Duration(seconds: 2), onTimeout: () => const {})
+        .catchError((_) => <String, dynamic>{});
+    final dnsInfo = await dnsFuture
+        .timeout(const Duration(seconds: 3), onTimeout: () => const {})
+        .catchError((_) => <String, dynamic>{});
+
+    return analyzeHeaders(scanUrl, response.headers,
+        certificate: certificate,
+        dnsInfo: dnsInfo,
+        discoveryInfo: discoveryInfo,
+        injectionInfo: injectionInfo);
   }
 
   /// Analyze response headers and produce a [ScanResult]. Pure logic with no
@@ -277,6 +352,7 @@ class SecurityScannerService {
     Map<String, dynamic> certificate = const {},
     Map<String, dynamic> dnsInfo = const {},
     Map<String, dynamic> discoveryInfo = const {},
+    Map<String, dynamic> injectionInfo = const {},
   }) {
     final httpsEnabled = UrlValidator.isHttps(normalizedUrl);
 
@@ -320,6 +396,7 @@ class SecurityScannerService {
       certificate: certificate,
       dnsInfo: dnsInfo,
       discoveryInfo: discoveryInfo,
+      injectionInfo: injectionInfo,
     );
 
     return ScanResult(
@@ -372,6 +449,7 @@ class SecurityScannerService {
     required Map<String, dynamic> certificate,
     Map<String, dynamic> dnsInfo = const {},
     Map<String, dynamic> discoveryInfo = const {},
+    Map<String, dynamic> injectionInfo = const {},
   }) {
     final findings = <SecurityFinding>[];
 
@@ -676,6 +754,22 @@ class SecurityScannerService {
               'Add a /.well-known/security.txt with contact details.',
         ));
       }
+    }
+
+    // SQL injection (error-based) — only when a query parameter was tested.
+    if (injectionInfo['vulnerable'] == true) {
+      final param = injectionInfo['param'];
+      findings.add(SecurityFinding(
+        title: 'Possible SQL Injection',
+        description:
+            'A database error was triggered by an injected quote in the "$param" '
+            'parameter, indicating the input is not properly sanitized.',
+        severity: FindingSeverity.critical,
+        code: FindingCode.sqlInjection,
+        param: param,
+        recommendation:
+            'Use parameterized queries / prepared statements and validate all input.',
+      ));
     }
 
     return findings;

@@ -60,6 +60,10 @@ class AppStrings {
       'Enter a URL to analyze its security posture',
       'ناونیشانێک بنووسە بۆ شیکردنەوەی ئاستی ئەمنیەتی');
   String get overview => _t('OVERVIEW', 'پوختە');
+  // App-wide bottom navigation
+  String get navHome => _t('Home', 'سەرەتا');
+  String get navScan => _t('Scan', 'سکان');
+  String get navSettings => _t('Settings', 'ڕێکخستن');
   String get totalScans => _t('Total Scans', 'کۆی سکانەکان');
   String get avgScore => _t('Avg Score', 'تێکڕای نمرە');
   String get recentScans => _t('RECENT SCANS', 'سکانە نوێیەکان');
@@ -108,6 +112,12 @@ class AppStrings {
 
   // --- Report screen --------------------------------------------------------
   String get securityReport => _t('SECURITY REPORT', 'ڕاپۆرتی ئەمنیەتی');
+  // Report bottom navigation
+  String get navOverview => _t('Overview', 'پوختە');
+  String get navHeaders => _t('Headers', 'هێدەر');
+  String get navTech => _t('Tech', 'تەکنەلۆجیا');
+  String get navDns => _t('DNS', 'DNS');
+  String get navMore => _t('More', 'زیاتر');
   String get securityScore => _t('SECURITY SCORE', 'نمرەی ئەمنیەتی');
   String get targetInformation => _t('TARGET INFORMATION', 'زانیاری ئامانج');
   String get securityHeadersTitle =>
@@ -426,6 +436,8 @@ class AppStrings {
       case FindingCode.missingCoep:
         return _t('Missing Cross-Origin-Embedder-Policy (COEP)',
             'هێدەری COEP نییە');
+      case FindingCode.sqlInjection:
+        return _t('Possible SQL Injection', 'ئەگەری SQL Injection');
       case FindingCode.other:
         return f.title;
     }
@@ -527,6 +539,10 @@ class AppStrings {
         return _t(
             'COEP, together with COOP, enables strong cross-origin isolation.',
             'COEP لەگەڵ COOP، جیاکردنەوەی بەهێزی cross-origin چالاک دەکات.');
+      case FindingCode.sqlInjection:
+        return _t(
+            'A database error was triggered by an injected quote in the "${f.param}" parameter, indicating the input is not properly sanitized.',
+            'هەڵەیەکی بنکەی داتا دروستبوو بەهۆی تێزڕاندنی واوێژ لە پارامیتەری "${f.param}"، کە ئاماژەیە بۆ ئەوەی داخڵکراوەکە بەدروستی پاک ناکرێتەوە.');
       case FindingCode.other:
         return f.description;
     }
@@ -613,6 +629,10 @@ class AppStrings {
       case FindingCode.missingCoep:
         return _t('Consider: Cross-Origin-Embedder-Policy: require-corp.',
             'بیری لێبکەرەوە: Cross-Origin-Embedder-Policy: require-corp.');
+      case FindingCode.sqlInjection:
+        return _t(
+            'Use parameterized queries / prepared statements and validate all input.',
+            'پرسیاری پارامیتەرکراو (prepared statements) بەکاربهێنە و هەموو داخڵکراوەکان پشتڕاست بکەرەوە.');
       case FindingCode.other:
         return f.recommendation;
     }
@@ -621,8 +641,12 @@ class AppStrings {
   // --- App lock / biometric -------------------------------------------------
   String get security => _t('SECURITY', 'ئاسایش');
   String get appLock => _t('App Lock', 'قوفڵی ئەپ');
-  String get appLockDesc => _t('Require biometrics to open History',
-      'پێویستی بە بایۆمەتری بۆ کردنەوەی مێژوو');
+  String get appLockDesc => _t(
+      'Require Face ID / fingerprint to open History',
+      'پێویستی بە Face ID / پەنجەمۆر بۆ کردنەوەی مێژوو');
+  String get appLockDescPin => _t(
+      'Require device PIN to open History',
+      'پێویستی بە PIN ـی ئامێر بۆ کردنەوەی مێژوو');
   String get unlockHistory =>
       _t('Unlock to view scan history', 'بۆ بینینی مێژووی سکان قوفڵ بکەرەوە');
   String get authFailed =>

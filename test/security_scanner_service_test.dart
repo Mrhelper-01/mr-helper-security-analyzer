@@ -309,5 +309,32 @@ void main() {
       expect(result.findings.any((f) => f.code == FindingCode.exposedGit),
           isFalse);
     });
+
+    test('vulnerable SQL injection produces a critical finding with param', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example/search.php?id=1',
+        fullyHardened,
+        injectionInfo: {
+          'checked': true,
+          'tested': true,
+          'vulnerable': true,
+          'param': 'id',
+        },
+      );
+      final f = result.findings
+          .firstWhere((f) => f.code == FindingCode.sqlInjection);
+      expect(f.severity, FindingSeverity.critical);
+      expect(f.param, 'id');
+    });
+
+    test('non-vulnerable SQL probe produces no injection finding', () {
+      final result = scanner.analyzeHeaders(
+        'https://x.example',
+        fullyHardened,
+        injectionInfo: {'checked': true, 'tested': true, 'vulnerable': false},
+      );
+      expect(result.findings.any((f) => f.code == FindingCode.sqlInjection),
+          isFalse);
+    });
   });
 }

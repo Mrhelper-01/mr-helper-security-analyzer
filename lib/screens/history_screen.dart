@@ -15,7 +15,9 @@ import 'package:mr_helper_security_analyzer/widgets/aurora_background.dart';
 /// Scan history screen with list, sort, and delete functionality
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  /// When true the screen is hosted inside the main shell, so no back button.
+  final bool embedded;
+  const HistoryScreen({super.key, this.embedded = false});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -94,11 +96,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(AppStrings.of(context).scanHistory),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: widget.embedded
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.pop(context),
+              ),
         actions: [
           Consumer<ScanProvider>(
             builder: (context, provider, _) {

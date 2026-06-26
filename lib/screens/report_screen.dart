@@ -24,14 +24,21 @@ import 'package:mr_helper_security_analyzer/widgets/header_check_tile.dart';
 /// MR HELPER - Web Application Security Analyzer
 /// Detailed security report screen with full breakdown
 
-class ReportScreen extends StatelessWidget {
+class ReportScreen extends StatefulWidget {
   final ScanResult? scanResult;
 
   const ReportScreen({super.key, required this.scanResult});
 
   @override
+  State<ReportScreen> createState() => _ReportScreenState();
+}
+
+class _ReportScreenState extends State<ReportScreen> {
+  int _tab = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final scan = scanResult;
+    final scan = widget.scanResult;
     if (scan == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('REPORT')),
@@ -59,39 +66,90 @@ class ReportScreen extends StatelessWidget {
       body: AuroraBackground(
         child: SafeArea(
           child: SingleChildScrollView(
+            key: ValueKey(_tab),
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(AppConstants.paddingMd),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                // Score & Grade Section
-                _buildScoreSection(scan, s),
-                const SizedBox(height: 20),
-                // Comparison with previous scan (if any)
-                _buildDiffSection(context, scan, s),
-                // URL & Risk Info
-                _buildUrlInfoSection(scan, s),
-                const SizedBox(height: 20),
-                // Security Headers
-                _buildHeadersSection(scan, s),
-                const SizedBox(height: 20),
-                // Cookie Analysis
-                _buildCookieSection(scan, s),
-                const SizedBox(height: 20),
-                // Server / certificate info
-                _buildServerSection(scan, s),
-                // DNS & email security
-                _buildDnsSection(context, scan, s),
-                // Summary
-                _buildSummarySection(scan, s),
-                const SizedBox(height: 20),
-                // Findings (severity-ranked)
-                _buildFindingsSection(scan, s),
+                ..._tabSections(context, scan, s),
                 const SizedBox(height: 24),
               ],
             ),
           ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(s),
+    );
+  }
+
+  /// Sections shown for the currently-selected bottom-nav tab.
+  List<Widget> _tabSections(
+      BuildContext context, ScanResult scan, AppStrings s) {
+    switch (_tab) {
+      case 1: // Headers
+        return [_buildHeadersSection(scan, s)];
+      case 2: // Technologies (server, certificate, target info)
+        return [
+          _buildServerSection(scan, s),
+          _buildUrlInfoSection(scan, s),
+        ];
+      case 3: // DNS & email
+        return [_buildDnsSection(context, scan, s)];
+      case 4: // More (cookies + summary)
+        return [
+          _buildCookieSection(scan, s),
+          const SizedBox(height: 20),
+          _buildSummarySection(scan, s),
+        ];
+      default: // Overview
+        return [
+          _buildScoreSection(scan, s),
+          const SizedBox(height: 20),
+          _buildDiffSection(context, scan, s),
+          _buildSummarySection(scan, s),
+          const SizedBox(height: 20),
+          _buildFindingsSection(scan, s),
+        ];
+    }
+  }
+
+  Widget _buildBottomNav(AppStrings s) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.backgroundCard.withValues(alpha: 0.95),
+          border: Border(
+            top: BorderSide(color: AppColors.glassBorder.withValues(alpha: 0.5)),
+          ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _tab,
+          onTap: (i) => setState(() => _tab = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: AppColors.primaryLight,
+          unselectedItemColor: AppColors.textMuted,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
+          items: [
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.shield_outlined), label: s.navOverview),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.http_rounded), label: s.navHeaders),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.memory_rounded), label: s.navTech),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.dns_rounded), label: s.navDns),
+            BottomNavigationBarItem(
+                icon: const Icon(Icons.more_horiz_rounded), label: s.navMore),
+          ],
         ),
       ),
     );

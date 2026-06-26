@@ -5,6 +5,7 @@
     <application
         android:label="mr_helper_security_analyzer"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

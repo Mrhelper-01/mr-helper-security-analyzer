@@ -6,15 +6,25 @@ import 'package:local_auth/local_auth.dart';
 class BiometricService {
   final LocalAuthentication _auth = LocalAuthentication();
 
-  /// Whether the device can perform any local authentication.
+  /// Whether the device can perform any local authentication (biometric OR a
+  /// device PIN/pattern/passcode — so phones without a fingerprint sensor,
+  /// including iPhones that use Face ID, are still covered).
   Future<bool> isAvailable() async {
     if (kIsWeb) return false;
     try {
-      final supported = await _auth.isDeviceSupported();
-      final canCheck = await _auth.canCheckBiometrics;
-      return supported && (canCheck || await _auth.isDeviceSupported());
+      return await _auth.isDeviceSupported();
     } catch (_) {
       return false;
+    }
+  }
+
+  /// The biometric methods the device offers (face, fingerprint, iris…).
+  Future<List<BiometricType>> availableTypes() async {
+    if (kIsWeb) return const [];
+    try {
+      return await _auth.getAvailableBiometrics();
+    } catch (_) {
+      return const [];
     }
   }
 
