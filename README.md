@@ -198,3 +198,4 @@ Licensed under the MIT License — see the LICENSE file for details.
 <div align="center">
   <sub>© 2026 MR HELPER. All rights reserved.</sub>
 </div>
+//mrhelper
