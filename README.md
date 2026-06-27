@@ -4,7 +4,7 @@
   <h1>🛡️ MR HELPER</h1>
   <p><strong>Web Application Security Analyzer</strong></p>
   <p>A professional mobile cybersecurity tool that analyzes website security headers, DNS/email configuration, TLS certificates and exposed files — then explains the findings and produces a shareable report.</p>
-  <p><sub>Version 2.0.0 · Flutter · Android-first</sub></p>
+  <p><sub>Version 2.1.0 · Flutter · Android-first</sub></p>
 </div>
 
 ---
@@ -19,6 +19,8 @@
 - **Cookie audit** — Secure, HttpOnly and SameSite flags across all cookies
 - **Permissive CORS detection** — flags `Access-Control-Allow-Origin: *`
 - **Server disclosure** — flags leaked `Server` / `X-Powered-By` versions
+- **SQL injection (error-based)** — non-destructively probes URL query parameters with a single-quote payload and detects database error signatures
+- **HTTP/HTTPS handling** — scans HTTP-only sites and automatically falls back from HTTPS to HTTP when needed
 
 ### 📊 Results & reporting
 - **Normalized 0–100 score** with letter grades (A–F) and Low/Medium/High/Critical risk
@@ -29,9 +31,10 @@
 
 ### 🔔 Monitoring & security
 - **Continuous monitoring** — periodic background rescans that send a **push notification** when a site's score drops
-- **Biometric app lock** — protect scan history with fingerprint / device PIN
+- **Biometric app lock** — protect scan history with **Face ID / fingerprint / device PIN** (whatever the device supports)
 
 ### 🌍 Experience
+- **App-wide bottom navigation** — Home · History · Scan · Statistics · Settings, with a tabbed report screen (Overview · Headers · Tech · DNS · More)
 - **Bilingual (i18n)** — full **Kurdish (Sorani, RTL)** and **English** UI, switchable at runtime
 - **Modern dark UI** — Cerebra-style violet aesthetic, aurora glow background, glassmorphism cards, gradient buttons
 - **Cloud history** — scans stored in Firebase Firestore
@@ -41,10 +44,12 @@
 | Screen | Description |
 |--------|-------------|
 | **Splash** | Animated intro with grid background and neon glow |
-| **Home** | Dashboard with stats, recent scans, quick actions |
+| **Main shell** | Persistent bottom navigation hosting the main tabs + centre Scan button |
+| **Home** | Dashboard with stats and recent scans |
 | **Scanner** | URL input with validation and live scanning status |
-| **Report** | Score gauge, comparison, headers, cookies, server/cert, DNS & email, findings; share + monitor |
-| **History** | Scan history with sort/delete (optionally biometric-locked) |
+| **Report** | Tabbed: Overview (score, comparison, findings), Headers, Tech (server/cert), DNS, More (cookies) — with share + monitor |
+| **DNS & Email** | Dedicated page: DNS records (A/MX/NS/TXT) and SPF/DKIM/DMARC results |
+| **History** | Scan history with sort/delete (biometric-locked when app lock is on) |
 | **Statistics** | Risk distribution chart, most-scanned ranking |
 | **Settings** | Language, app lock, app & developer info |
 | **About** | Feature list and technical stack |
@@ -78,7 +83,7 @@ The app performs a **passive** analysis: it fetches the target, inspects HTTP re
 | Permissions-Policy | 5 |
 | Cookie Secure / HttpOnly / SameSite | 4 each *(only when cookies are present)* |
 
-DNS/email, exposed-file, CORS and other checks are surfaced as **severity-ranked findings**.
+DNS/email, exposed-file, CORS, server-disclosure and **SQL-injection** checks are surfaced as **severity-ranked findings** (the SQL-injection probe only runs on URLs that have query parameters, e.g. `site.com/page.php?id=1`).
 
 **Grades:** A (90–100) · B (80–89) · C (70–79) · D (60–69) · F (0–59)
 
@@ -122,6 +127,8 @@ lib/
 │   ├── printable_report.dart        # Flutter-rendered report for Kurdish PDF
 │   ├── risk_badge.dart / stats_card.dart / header_check_tile.dart
 └── screens/
+    ├── main_shell.dart             # Bottom-navigation shell hosting the tabs
+    ├── dns_email_screen.dart       # DNS & email-security detail page
     └── splash / home / scanner / report / history / statistics / settings / about
 ```
 
@@ -161,7 +168,7 @@ flutter test
 flutter build apk --release
 ```
 
-> **Android notes:** `MainActivity` extends `FlutterFragmentActivity` (required by `local_auth`), and core-library desugaring is enabled in `android/app/build.gradle.kts` (required by `flutter_local_notifications`). Permissions used: `USE_BIOMETRIC`, `POST_NOTIFICATIONS`, `INTERNET`.
+> **Android notes:** `MainActivity` extends `FlutterFragmentActivity` (required by `local_auth`), core-library desugaring is enabled in `android/app/build.gradle.kts` (required by `flutter_local_notifications`), and `usesCleartextTraffic="true"` is set so HTTP-only sites can be scanned. Permissions used: `USE_BIOMETRIC`, `POST_NOTIFICATIONS`, `INTERNET`.
 
 ## 🎨 UI Theme
 
@@ -173,7 +180,7 @@ flutter build apk --release
 
 ## ✅ Roadmap status
 
-**Shipped in 2.0.0:** TLS certificate inspection · DNS & email checks · exposed-file discovery · PDF export · multi-language (Kurdish/English) · biometric authentication · continuous monitoring & alerts · historical comparison.
+**Shipped:** TLS certificate inspection · DNS & email checks (SPF/DKIM/DMARC) · exposed-file discovery · SQL-injection detection · PDF export (English & Kurdish) · multi-language UI · Face ID / fingerprint app lock · continuous monitoring & alerts · historical comparison · app-wide & tabbed navigation.
 
 **Possible next steps:** vulnerability/CVE lookups · WHOIS · in-app webview · TLS cipher grading · dark-web breach checks (these last two and CVE require paid APIs).
 
@@ -198,4 +205,3 @@ Licensed under the MIT License — see the LICENSE file for details.
 <div align="center">
   <sub>© 2026 MR HELPER. All rights reserved.</sub>
 </div>
-//mrhelper
