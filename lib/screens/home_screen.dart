@@ -16,7 +16,10 @@ import 'package:mr_helper_security_analyzer/widgets/section_label.dart';
 /// Home dashboard with stats, quick actions, and recent scans
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  /// Lets the home screen ask the shell to switch to another bottom-nav tab
+  /// (0 Home, 1 History, 3 Statistics, 4 Settings).
+  final void Function(int index)? onSelectTab;
+  const HomeScreen({super.key, this.onSelectTab});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -62,9 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 // Recent scans
                 _buildRecentScansSection(),
-                const SizedBox(height: 24),
-                // Quick actions
-                _buildQuickActions(),
                 const SizedBox(height: 24),
               ],
             ),
@@ -113,12 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _buildIconButton(
               icon: Icons.bar_chart_rounded,
-              onTap: () => Navigator.pushNamed(context, AppRoutes.statistics),
+              onTap: () => widget.onSelectTab?.call(3),
             ),
             const SizedBox(width: 8),
             _buildIconButton(
               icon: Icons.settings_rounded,
-              onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+              onTap: () => widget.onSelectTab?.call(4),
             ),
           ],
         ),
@@ -304,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: SectionLabel(
                         text: AppStrings.of(context).recentScans)),
                 GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.history),
+                  onTap: () => widget.onSelectTab?.call(1),
                   child: Text(
                     AppStrings.of(context).viewAll,
                     style: const TextStyle(
@@ -450,81 +450,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionLabel(text: AppStrings.of(context).quickActions),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.history_rounded,
-                label: AppStrings.of(context).history,
-                color: AppColors.neonPurple,
-                onTap: () => Navigator.pushNamed(context, AppRoutes.history),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.analytics_rounded,
-                label: AppStrings.of(context).statistics,
-                color: AppColors.neonGreen,
-                onTap: () => Navigator.pushNamed(context, AppRoutes.statistics),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.info_outline_rounded,
-                label: AppStrings.of(context).about,
-                color: AppColors.warning,
-                onTap: () => Navigator.pushNamed(context, AppRoutes.about),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppConstants.paddingMd),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppConstants.radiusMd),
-          border: Border.all(
-            color: color.withValues(alpha: 0.15),
-            width: 0.5,
-          ),
-          color: color.withValues(alpha: 0.05),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'UniQAIDAR',
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: color,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
